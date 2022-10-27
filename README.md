@@ -1,6 +1,4 @@
-# docker
-
-## 安装和命令
+# 1.安装
 
 ### 国内安装docker
 
@@ -49,6 +47,8 @@ runlike 容器
 docker image inspect (docker image名称):latest|grep -i version
 ```
 
+
+
 ### 容器命令
 
 ```
@@ -73,17 +73,73 @@ docker image inspect (docker image名称):latest|grep -i version
 开机启动 docker update --restart=always  xx
 ```
 
-### 查看容器运行状态
+
+
+#### 容器cup 内存等信息
 
 ```
-docker stats 
+docker stats
 ```
 
-### 复制文件到容器
+![image-20221027155151408](.\img\.gitignore)
+
+
+
+#### 复制文件
 
 ```
-docker cp 容器di:容器内路径 目的主机路径
+docker cp 容器名:容器内路径 目的主机路径 
 ```
+
+
+
+#### 日志
+
+后台运行查询指定数量最新log
+
+```
+docker logs -f -t --tail=5 容器名
+```
+
+# 2.制作镜像
+
+## Dockerfile
+
+```
+# 基础镜像使用java
+FROM openjdk:11-jre-slim
+
+VOLUME /tmp
+
+#  1. 将原来的文件删除掉，覆盖原来的文件。
+#RUN cd /
+RUN bash -c 'mkdir -p /{config,target}'
+
+#将本地文件添加到容器中
+# 放在/目录中, docker logs 可以查询, 放home中不会
+#如果指定的路径是以/结尾则是目录配置，会去目录下找配置文件。这个参数默认的配置为：
+#classpath:/,classpath:/config/,file:./,file:./config/
+
+# 复制配置文件,可以注释 ,自动识别 config的配置信息
+COPY /docker/application.yml /config/application.yml
+# 复制jar
+COPY /target/*.jar /target/server.jar
+#配置容器，使其可执行化
+# 自动识别config/application.yml
+ENTRYPOINT ["java","-jar","/target/server.jar"]
+#配置时区，不然会发现打包到docker中启动的容器日志里的时间是差8个小时的
+RUN /bin/cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
+&& echo 'Asia/Shanghai' >/etc/timezone
+
+# 暴露端口,需要和服务的端口一致
+# restart=always; privileged=true; network=demo-network
+# --restart=always --privileged=true --network=demo-network
+EXPOSE 11090
+```
+
+
+
+# 3.常用容器
 
 ## portainer-ce 图形界面
 
@@ -160,6 +216,8 @@ flush privileges;
 ```
 
 ##  postgres
+
+### 命令
 
 ```
 docker run --name demo-pgsql  -d \
@@ -321,6 +379,10 @@ nginx:1.21.6-alpine
 docker run -i -t --network demo-network   -p 50070:50070 -p 9000:9000 -p 8088:8088 -p 8040:8040 -p 8042:8042  -p 49707:49707  -p 50010:50010  -p 50075:50075  -p 50090:50090 sequenceiq/hadoop-docker:2.6.0 /etc/bootstrap.sh -bash
 ```
 
+```
+配置请求转发,在conf.d/default.conf 中配置
+```
+
 
 
 ## mongodb
@@ -379,6 +441,8 @@ minio/minio:latest server /data --console-address ":9001"
 
 ## keycloak
 
+#### 命令
+
 ```
 docker run --name keycloak -d -p 7010:8080 -e KEYCLOAK_USER=admin -e KEYCLOAK_PASSWORD=admin jboss/keycloak:16.0.0
 ```
@@ -401,7 +465,7 @@ cd /opt/jboss/keycloak/bin  # 在opt里面,每个版本不一样,
 
 ## rabbitmq
 
-### 命令
+#### 命令
 
 ```
 docker run --name rabbitmq -d \
@@ -429,3 +493,10 @@ rabbitmq-plugins enable rabbitmq_management
 ```
 
 ## elk
+
+### 命令
+
+```
+使用 docker compose
+```
+
