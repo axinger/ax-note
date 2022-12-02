@@ -500,3 +500,32 @@ rabbitmq-plugins enable rabbitmq_management
 使用 docker compose
 ```
 
+## kafaka
+
+### 命令
+
+```
+使用 docker compose
+```
+
+## pulsar
+
+### 命令
+
+```
+docker run -it -d --name=demo-pulsar \
+-p 6650:6650  -p 17080:8080 \
+--mount source=pulsardata,target=/root/mydata/pulsar/data \
+--mount source=pulsarconf,target=/root/mydata/pulsar/conf \
+apachepulsar/pulsar:2.10.2 \
+bin/pulsar standalone
+```
+
+```
+docker run -d -it --name=pulsar-manager \
+-p 17081:9527 -p 7750:7750 \
+-e SPRING_CONFIGURATION_FILE=/pulsar-manager/pulsar-manager/application.properties \
+--link pulsar-standalone \
+apachepulsar/pulsar-manager:v0.3.0
+```
+
