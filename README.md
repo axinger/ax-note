@@ -1,6 +1,6 @@
-# 1.安装
+# 1.命令
 
-### 国内安装docker
+## 1.国内安装docker
 
 ```
 curl -sSL https://get.daocloud.io/docker | sh
@@ -11,21 +11,13 @@ curl -sSL https://get.daocloud.io/docker | sh
 --privileged=true \ 容器内部拥有root权限
 ```
 
-### 创建完成的容器修改启动参数
-
-```
-docker container update restart=always 容器名或id
-```
-
-### 查看气启动参数
+## 2.查看气启动参数
 
 ```
 runlike 容器
 ```
 
-
-
-### 系统开关机命令
+## 3.系统开关机命令
 
 ```
 启动: systemctl start docker
@@ -35,7 +27,11 @@ runlike 容器
 开机启动: systemctl enable docker
 ```
 
-### 镜像命令
+
+
+## 4.镜像命令
+
+### 1.基础命令
 
 ```
 查看概要: docker info
@@ -45,11 +41,45 @@ runlike 容器
 强制删除镜像: docker rmi -f
 查看已下载的Docker镜像latest具体版本
 docker image inspect (docker image名称):latest|grep -i version
+
+docker tag 标签
+```
+
+### 2.无法删除镜像
+
+```
+cd /var/lib/docker/image/overlay2/imagedb/content/sha256
+```
+
+```
+rm -rf 文件名(输入docker images 查询到的简称,tab出全程)
+```
+
+### 3.镜像导出导入
+
+```
+docker save nginx > Nginx.tar
+```
+
+```
+docker load < Nginx.tar
+```
+
+### 4.容器导出导入
+
+```
+docker export b91d9ad83efa > tomcat80824.tar
+```
+
+```
+docker import tomcat80824.tar
 ```
 
 
 
-### 容器命令
+## 5.容器命令
+
+
 
 ```
 启动交互式容器(前台命令行)
@@ -73,9 +103,7 @@ docker image inspect (docker image名称):latest|grep -i version
 开机启动 docker update --restart=always  xx
 ```
 
-
-
-#### 容器cup 内存等信息
+### 1.容器cup 内存等信息
 
 ```
 docker stats
@@ -83,17 +111,13 @@ docker stats
 
 ![image-20221027155151408](.\img\.gitignore)
 
-
-
-#### 复制文件
+### 2.复制文件
 
 ```
 docker cp 容器名:容器内路径 目的主机路径 
 ```
 
-
-
-#### 日志
+### 3.日志
 
 后台运行查询指定数量最新log
 
@@ -101,45 +125,128 @@ docker cp 容器名:容器内路径 目的主机路径
 docker logs -f -t --tail=5 容器名
 ```
 
-# 2.制作镜像
-
-## Dockerfile
+### 4.创建完成的容器修改启动参数
 
 ```
-# 基础镜像使用java
-FROM openjdk:11-jre-slim
+docker container update restart=always 容器名或id
+```
+
+## 6.制作镜像
+
+### 1.java
+
+Dockerfile
+
+```
+FROM eclipse-temurin:17-jre-alpine
 
 VOLUME /tmp
 
-#  1. 将原来的文件删除掉，覆盖原来的文件。
 #RUN cd /
-RUN bash -c 'mkdir -p /{config,target}'
+# eclipse-temurin:17-jre-alpine 没有mkdir命令
+#RUN bash -c 'mkdir -p {config,target}'
+COPY /target/*.jar /server.jar
 
-#将本地文件添加到容器中
-# 放在/目录中, docker logs 可以查询, 放home中不会
-#如果指定的路径是以/结尾则是目录配置，会去目录下找配置文件。这个参数默认的配置为：
-#classpath:/,classpath:/config/,file:./,file:./config/
-
-# 复制配置文件,可以注释 ,自动识别 config的配置信息
-COPY /docker/application.yml /config/application.yml
-# 复制jar
-COPY /target/*.jar /target/server.jar
-#配置容器，使其可执行化
 # 自动识别config/application.yml
-ENTRYPOINT ["java","-jar","/target/server.jar"]
+ENTRYPOINT ["java","-jar","/server.jar"]
+
 #配置时区，不然会发现打包到docker中启动的容器日志里的时间是差8个小时的
 RUN /bin/cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
-&& echo 'Asia/Shanghai' >/etc/timezone
+&& echo 'Asia/Shanghai' >/etc/timezone \
+
+# docker 命令 对应的idea运行配置
+# restart=always; privileged=true;
+# idea运行配置
+# --restart=always --privileged=true
 
 # 暴露端口,需要和服务的端口一致
-# restart=always; privileged=true; network=demo-network
-# --restart=always --privileged=true --network=demo-network
 EXPOSE 11090
+
+```
+
+### 2. nginx 
+
+Dockerfile
+
+```
+FROM nginx:1.23.2-alpine
+
+# 删除nginx 默认配置
+RUN rm /etc/nginx/conf.d/default.conf
+# 添加我们自己的配置 default.conf 在下面
+ADD docker/default.conf /etc/nginx/conf.d/
+# 把刚才生成dist文件夹下的文件copy到nginx下面去
+COPY dist/  /usr/share/nginx/html/
+
+# --restart=always --privileged=true
+EXPOSE 80
+
+```
+
+nginx的配置文件 default.conf
+
+```
+server {
+    listen       80;
+    listen  [::]:80;
+    server_name  localhost;
+
+    #access_log  /var/log/nginx/host.access.log  main;
+
+    location / {
+        root   /usr/share/nginx/html;
+        index  index.html index.htm;
+    }
+
+    location  ^~ /baseApi/ {
+        proxy_pass   http://192.168.101.143:12701/;
+    }
+  location  ^~ /gatewayApi/ {
+        proxy_pass   http://192.168.101.134:30011/;
+    }
+
+
+
+    #error_page  404              /404.html;
+
+    # redirect server error pages to the static page /50x.html
+    #
+    error_page   500 502 503 504  /50x.html;
+    location = /50x.html {
+        root   /usr/share/nginx/html;
+    }
+
+    # proxy the PHP scripts to Apache listening on 127.0.0.1:80
+    #
+    #location ~ \.php$ {
+    #    proxy_pass   http://127.0.0.1;
+    #}
+
+    # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
+    #
+    #location ~ \.php$ {
+    #    root           html;
+    #    fastcgi_pass   127.0.0.1:9000;
+    #    fastcgi_index  index.php;
+    #    fastcgi_param  SCRIPT_FILENAME  /scripts$fastcgi_script_name;
+    #    include        fastcgi_params;
+    #}
+
+    # deny access to .htaccess files, if Apache's document root
+    # concurs with nginx's one
+    #
+    #location ~ /\.ht {
+    #    deny  all;
+    #}
+}
+
 ```
 
 
 
-# 3.常用容器
+
+
+# 2.常用容器
 
 ## portainer-ce 图形界面
 
