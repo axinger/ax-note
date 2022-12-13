@@ -1,3 +1,11 @@
+
+
+volumes:
+  zookeeper_data:
+    driver: local
+  kafka_data:
+    driver: local
+
 version: "2"
 
 services:
@@ -6,7 +14,7 @@ services:
     ports:
       - "2181:2181"
     volumes:
-      - "./zookeeper_data:/bitnami"
+      - "zookeeper_data:/bitnami"
     environment:
       - ALLOW_ANONYMOUS_LOGIN=yes
   kafka:
@@ -14,11 +22,11 @@ services:
     ports:
       - "9092:9092"
     volumes:
-      - "./kafka_data:/bitnami"
+      - "kafka_data:/bitnami"
     environment:
-      KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
-      ALLOW_PLAINTEXT_LISTENER: "yes"
-      KAFKA_CFG_ADVERTISED_LISTENERS: "PLAINTEXT://ip:9092" #本机ip,不然无法链接
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      KAFKA_CFG_ADVERTISED_LISTENERS: "PLAINTEXT://192.168.101.143:9092" #本机ip,不然无法链接
     depends_on:
       - zookeeper
 

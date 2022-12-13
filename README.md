@@ -615,6 +615,14 @@ rabbitmq-plugins enable rabbitmq_management
 使用 docker compose
 ```
 
+测试工具
+
+```
+docker run -d -p 8889:8889 freakchicken/kafka-ui-lite
+```
+
+
+
 ## pulsar
 
 ### 命令
