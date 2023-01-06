@@ -335,6 +335,16 @@ docker run --name demo-pgsql  -d \
 postgres
 ```
 
+### 修改连接
+
+```
+docker exec -it demo-pgsql bash
+```
+
+```
+psql -h localhost -p 5432 -U postgres --password
+```
+
 
 
 ## nacos
@@ -447,7 +457,7 @@ https://github.com/seata/seata/blob/develop/script/server/db/mysql.sql
 
 ```
 docker run --name redis6 -d \
--p 6379:6379 \
+-p 6378:6379 \
 --privileged=true \
 --restart=always \
 --network demo-network \
