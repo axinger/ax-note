@@ -328,11 +328,10 @@ flush privileges;
 
 ```
 docker run --name demo-pgsql  -d \
---network demo-network \
--e POSTGRES_PASSWORD=postgres \
+-e POSTGRES_PASSWORD=123456 \
 -p 5432:5432 \
--v ~/mydata/pgsql/data:/var/lib/postgresql/data \
-postgres
+-v ~/mydata/postgresql/data:/var/lib/postgresql/data \
+postgres:14.6-alpine
 ```
 
 ### 修改连接
