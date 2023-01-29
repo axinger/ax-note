@@ -263,11 +263,26 @@ docker run -d  --name portainer -p 9000:9000 -v /var/run/docker.sock:/var/run/do
 ### 命令
 
 ```
+mkdir -p ~/mydata/mysql8/{data,logs,conf}
+```
+
+```
+docker run \
+--name mysql8 -d \
+-p 3306:3306 \
+-e MYSQL_ROOT_PASSWORD=123456 \
+mysql:8.0.28
+```
+
+```
+docker cp mysql8:/etc/mysql/my.cnf ~/mydata/mysql8/conf/my.cnf
+```
+
+```
 docker run \
 --name mysql8 -d \
 -p 3306:3306 \
 --network demo-network \
---network-alias mysql8 \
 -e MYSQL_ROOT_PASSWORD=123456 \
 --restart=always \
 --privileged=true \
@@ -277,9 +292,7 @@ docker run \
 mysql:8.0.28
 ```
 
-```
-docker cp mysql8:/etc/mysql/my.cnf ~/mydata/mysql8/conf/my.cnf
-```
+
 
 
 
