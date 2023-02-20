@@ -41,7 +41,8 @@ runlike 容器
 强制删除镜像: docker rmi -f
 查看已下载的Docker镜像latest具体版本
 docker image inspect (docker image名称):latest|grep -i version
-
+导出镜像: docker save -o test.tar mysql:8.0.28
+导入镜像: docker load -i test.tar
 docker tag 标签
 ```
 
