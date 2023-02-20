@@ -475,7 +475,7 @@ https://github.com/seata/seata/blob/develop/script/server/db/mysql.sql
 
 ```
 docker run --name redis6 -d \
--p 6378:6379 \
+-p 6379:6379 \
 --privileged=true \
 --restart=always \
 --network demo-network \
