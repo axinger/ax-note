@@ -471,6 +471,23 @@ https://github.com/seata/seata/blob/develop/script/server/db/mysql.sql
 
 ## redis
 
+建立挂载目录
+
+```
+mkdir -p ~/mydata/redis/conf
+chmod -R 777 ~/mydata/redis
+```
+
+```
+没有配置文件这件事呢！那是因为redis容器里边的配置文件是需要在创建容器时映射进来的
+https://github.com/redis/redis/blob/unstable/redis.conf 
+下载文件,进行映射
+```
+
+```
+docker exec -it redis7 sh
+```
+
 ### 命令
 
 ```
@@ -481,7 +498,10 @@ docker run --name redis6 -d \
 --network demo-network \
 -v ~/mydata/redis/conf:/etc/redis.conf \
 -v ~/mydata/redis/data:/data \
-redis:6.2.7-alpine3.15
+redis:6.2.7-alpine3.15 redis-server /etc/redis/redis.conf
+指定redis在docker中的配置文件路径，后台启动redis
+
+
 ```
 
 ## nginx
