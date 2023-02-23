@@ -491,16 +491,13 @@ docker exec -it redis7 sh
 ### 命令
 
 ```
-docker run --name redis6 -d \
+docker run --name redis7 -d \
 -p 6379:6379 \
 --privileged=true \
 --restart=always \
---network demo-network \
--v ~/mydata/redis/conf:/etc/redis.conf \
+-v ~/mydata/redis/redis.conf:/etc/redis/redis.conf \
 -v ~/mydata/redis/data:/data \
-redis:6.2.7-alpine3.15 redis-server /etc/redis/redis.conf
-指定redis在docker中的配置文件路径，后台启动redis
-
+redis:7.0.4 redis-server /etc/redis/redis.conf
 
 ```
 
