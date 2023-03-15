@@ -11,6 +11,57 @@ curl -sSL https://get.daocloud.io/docker | sh
 --privileged=true \ 容器内部拥有root权限
 ```
 
+### 1.磁盘
+
+```
+df -h
+```
+
+![image-20230315150120299](.\img\image-20230315150120299.png)
+
+### 2.修改软连接
+
+docker存储路径
+
+```
+docker info | grep "Docker Root Dir"
+```
+
+停掉docker服务
+
+```
+systemctl stop docker
+```
+
+移动docker目录
+
+```
+mv /var/lib/docker /home/docker_home
+```
+
+创建软链接
+
+- /home/docker_home为源文件目录，也就是新设置的docker存储目录
+- /var/lib/docker为软链接目标目录，与此目录建立链接后，相当于原来的docker配置保持不变，但真正的存储目录是其背后所指向的/home/docker_home
+
+```
+ln -s /home/docker_home /var/lib/docker
+```
+
+启动docker服务
+
+```
+systemctl start docker
+```
+
+查看/var/lib/目录，docker目录是一个软链接，指向/home/docker_home，配置正确
+
+```
+ls -al /var/lib
+```
+
+![image-20230315150239718](.\img\image-20230315150239718.png)
+
 ## 2.查看气启动参数
 
 ```
