@@ -254,7 +254,15 @@ server {
 ### 命令
 
 ```
-docker run -d  --name portainer -p 9000:9000 -v /var/run/docker.sock:/var/run/docker.sock -v /app/portainer_data:/data --restart always --privileged=true portainer/portainer-ce:latest
+mkdir -p /home/portainer/data
+```
+
+```
+/var/run/docker.sock:/var/run/docker.sock 是固定值,docker的内容
+```
+
+```
+docker run -d  --name portainer -p 9000:9000 -v /var/run/docker.sock:/var/run/docker.sock -v /home/portainer/data:/data --restart always --privileged=true portainer/portainer-ce:latest
 ```
 
 ```
@@ -269,7 +277,7 @@ abcd1234567890
 ### 命令
 
 ```
-mkdir -p ~/mydata/mysql8/{data,logs,conf}
+mkdir -p /home/mysql8/{data,logs,conf}
 ```
 
 ```
@@ -281,7 +289,7 @@ mysql:8.0.28
 ```
 
 ```
-docker cp mysql8:/etc/mysql/my.cnf ~/mydata/mysql8/conf/my.cnf
+docker cp mysql8:/etc/mysql/my.cnf /home/mysql8/conf/my.cnf
 ```
 
 ```
@@ -292,9 +300,9 @@ docker run \
 -e MYSQL_ROOT_PASSWORD=123456 \
 --restart=always \
 --privileged=true \
--v ~/mydata/mysql8/data:/var/lib/mysql \
--v ~/mydata/mysql8/logs:/var/log/mysql \
--v ~/mydata/mysql8/conf/my.cnf:/etc/mysql/my.cnf \
+-v /home/mysql8/data:/var/lib/mysql \
+-v /home/mysql8/logs:/var/log/mysql \
+-v /home/mysql8/conf/my.cnf:/etc/mysql/my.cnf \
 mysql:8.0.28
 ```
 
@@ -349,7 +357,7 @@ flush privileges;
 docker run --name demo-pgsql  -d \
 -e POSTGRES_PASSWORD=123456 \
 -p 5432:5432 \
--v ~/mydata/postgresql/data:/var/lib/postgresql/data \
+-v /home/postgresql/data:/var/lib/postgresql/data \
 postgres:14.6-alpine
 ```
 
@@ -376,21 +384,21 @@ psql -h localhost -p 5432 -U postgres --password
 ```
 docker pull nacos/nacos-server:1.4.0
 
-mkdir -p ~/mydata/nacos1/{init.d,conf}
+mkdir -p /home/nacos1/{init.d,conf}
 
 docker run --name nacos -d \
 -e MODE=standalone \
 -p 8848:8848 \
 --restart=always \
--v ~/mydata/nacos/logs:/home/nacos/logs \
--v ~/mydata/nacos/init/custom.properties:/home/nacos/init.d/custom.properties \
+-v /home/nacos/logs:/home/nacos/logs \
+-v /home/nacos/init/custom.properties:/home/nacos/init.d/custom.properties \
 nacos/nacos-server:1.4.0
 ```
 
 ### 1.4.2 及 2.0.3版本
 
 ```
-mkdir -p ~/mydata/nacos/{logs,conf}
+mkdir -p /home/nacos/{logs,conf}
 ```
 
 ````
@@ -414,7 +422,7 @@ nacos/nacos-server:v2.0.4
 ```
 
 ```
-docker cp nacos:/home/nacos/conf/application.properties ~/mydata/nacos/conf/application.properties
+docker cp nacos:/home/nacos/conf/application.properties /home/nacos/conf/application.properties
 ```
 
 ```
@@ -432,8 +440,8 @@ docker  run \
 --privileged=true \
 --restart=always \
 -e MODE=standalone \
--v ~/mydata/nacos/logs:/home/nacos/logs \
--v ~/mydata/nacos/conf/application.properties:/home/nacos/conf/application.properties \
+-v /home/nacos/logs:/home/nacos/logs \
+-v /home/nacos/conf/application.properties:/home/nacos/conf/application.properties \
 nacos/nacos-server:v2.0.4
 ```
 
@@ -454,9 +462,9 @@ docker run --name demo-seata -d \
 --privileged=true \
 --restart=always \
 -e SEATA_PORT=8091 \
--v ~/mydata/seata/conf/registry.conf:/seata-server/resources/registry.conf \
--v ~/mydata/seata/conf/file.conf:/seata-server/resources/file.conf \
--v ~/mydata/seata/logs:/root/logs \
+-v /home/seata/conf/registry.conf:/seata-server/resources/registry.conf \
+-v /home/seata/conf/file.conf:/seata-server/resources/file.conf \
+-v /home/seata/logs:/root/logs \
 seataio/seata-server:1.4.2
 ```
 
@@ -474,8 +482,8 @@ https://github.com/seata/seata/blob/develop/script/server/db/mysql.sql
 建立挂载目录
 
 ```
-mkdir -p ~/mydata/redis/conf
-chmod -R 777 ~/mydata/redis
+mkdir -p /home/redis/conf
+chmod -R 777 /home/redis
 ```
 
 ```
@@ -495,8 +503,8 @@ docker run --name redis7 -d \
 -p 6379:6379 \
 --privileged=true \
 --restart=always \
--v ~/mydata/redis/redis.conf:/etc/redis/redis.conf \
--v ~/mydata/redis/data:/data \
+-v /home/redis/redis.conf:/etc/redis/redis.conf \
+-v /home/redis/data:/data \
 redis:7.0.4 redis-server /etc/redis/redis.conf
 
 ```
@@ -506,12 +514,12 @@ redis:7.0.4 redis-server /etc/redis/redis.conf
 ### 建立挂载目录
 
 ```
-mkdir -p ~/mydata/nginx/{conf,conf.d,html,log}
+mkdir -p /home/nginx/{conf,conf.d,html,log}
 
 docker run --name demo-nginx -p 8080:80 -d nginx
-docker cp demo-nginx:/etc/nginx/nginx.conf ~/mydata/nginx/conf/nginx.conf
+docker cp demo-nginx:/etc/nginx/nginx.conf /home/nginx/conf/nginx.conf
 
-docker cp demo-nginx:/etc/nginx/conf.d/default.conf ~/mydata/nginx/conf.d/default.conf
+docker cp demo-nginx:/etc/nginx/conf.d/default.conf /home/nginx/conf.d/default.conf
 ```
 
 ### 命令
@@ -520,10 +528,10 @@ docker cp demo-nginx:/etc/nginx/conf.d/default.conf ~/mydata/nginx/conf.d/defaul
 docker run --name demo-nginx -d \
 -p 3500:80 \
 --network demo-network \
--v ~/mydata/nginx/html:/usr/share/nginx/html \
--v ~/mydata/nginx/conf/nginx.conf:/etc/nginx/nginx.conf \
--v ~/mydata/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf \
--v ~/mydata/nginx/log:/var/log/nginx \
+-v /home/nginx/html:/usr/share/nginx/html \
+-v /home/nginx/conf/nginx.conf:/etc/nginx/nginx.conf \
+-v /home/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf \
+-v /home/nginx/log:/var/log/nginx \
 nginx:1.21.6-alpine
 ```
 
@@ -542,7 +550,7 @@ docker run -i -t --network demo-network   -p 50070:50070 -p 9000:9000 -p 8088:80
 ### 文件夹
 
 ```
-mkdir -p ~/mydata/mongodb/{data,conf,backup}
+mkdir -p /home/mongodb/{data,conf,backup}
 ```
 
 ### mongodb.conf
@@ -569,9 +577,9 @@ docker run --name mongodb -d \
 --privileged=true \
 -e MONGO_INITDB_ROOT_USERNAME=admin \
 -e MONGO_INITDB_ROOT_PASSWORD=admin123 \
--v ~/mydata/mongodb/data:/data/db \
--v ~/mydata/mongodb/backup:/data/backup \
--v ~/mydata/mongodb/conf:/data/configdb \
+-v /home/mongodb/data:/data/db \
+-v /home/mongodb/backup:/data/backup \
+-v /home/mongodb/conf:/data/configdb \
 mongo:4.4.13-focal
 ```
 
@@ -586,8 +594,8 @@ docker run -p 9030:9000 -p 9031:9001 --name minio \
 -e TZ="Asia/Shanghai" \
 -e MINIO_ROOT_USER=admin \
 -e MINIO_ROOT_PASSWORD=admin123 \
--v ~/mydata/minio/data:/data \
--v ~/mydata/minio/config:/root/.minio \
+-v /home/minio/data:/data \
+-v /home/minio/config:/root/.minio \
 minio/minio:latest server /data --console-address ":9001"
 ```
 
@@ -598,6 +606,8 @@ minio/minio:latest server /data --console-address ":9001"
 ```
 docker run --name keycloak -d -p 7010:8080 -e KEYCLOAK_USER=admin -e KEYCLOAK_PASSWORD=admin jboss/keycloak:16.0.0
 ```
+
+禁用https
 
 ```
 docker exec -it keycloak bash
@@ -624,9 +634,9 @@ docker run --name rabbitmq -d \
 --privileged=true \
 --restart=always \
 -d -p 5672:5672 -p 15672:15672 \
--v ~/mydata/rabbitmq/data:/var/lib/rabbitmq \
--v ~/mydata/rabbitmq/conf:/etc/rabbitmq \
--v ~/mydata/rabbitmq/log:/var/log/rabbitmq \
+-v /home/rabbitmq/data:/var/lib/rabbitmq \
+-v /home/rabbitmq/conf:/etc/rabbitmq \
+-v /home/rabbitmq/log:/var/log/rabbitmq \
 --hostname=rabbitmqhost \
 -e RABBITMQ_DEFAULT_VHOST=my_vhost \
 -e RABBITMQ_DEFAULT_USER=admin \
@@ -643,6 +653,27 @@ docker exec -it rabbitmq /bin/bash
 ```
 rabbitmq-plugins enable rabbitmq_management
 ```
+
+## rocketmq
+
+### 命令
+
+```
+mkdir -p /home/rocketmq/logs /home/rocketmq/store
+
+```
+
+```
+docker run -d --restart=always --name rocketmq \
+--privileged=true -p 9876:9876 \
+-v /home/rocketmq/logs:/root/logs \
+-v /home/rocketmq/store:/root/store \
+-e "MAX_POSSIBLE_HEAP=100000000" \
+rocketmqinc/rocketmq:4.9.4 sh mqnamesrv
+
+```
+
+
 
 ## elk
 
