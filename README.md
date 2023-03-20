@@ -60,6 +60,10 @@ systemctl start docker
 ls -al /var/lib
 ```
 
+```
+ll /var/lib/docker
+```
+
 ![image-20230315150239718](.\img\image-20230315150239718.png)
 
 ## 2.查看气启动参数
@@ -313,7 +317,7 @@ mkdir -p /home/portainer/data
 ```
 
 ```
-docker run -d  --name portainer -p 9000:9000 -v /var/run/docker.sock:/var/run/docker.sock -v /home/portainer/data:/data --restart always --privileged=true portainer/portainer-ce:latest
+docker run -d  --name portainer -p 900:9000 -v /var/run/docker.sock:/var/run/docker.sock -v /home/portainer/data:/data --restart always --privileged=true portainer/portainer-ce:latest
 ```
 
 ```
@@ -639,15 +643,19 @@ mongo:4.4.13-focal
 ### 命令
 
 ```
-docker run -p 9030:9000 -p 9031:9001 --name minio \
+mkdir -p /home/minio/{data,conf}
+```
+
+```
+docker run -p 19000:9000 -p 9031:9001 --name minio19000 \
 -d --restart=always \
 --privileged=true \
 -e TZ="Asia/Shanghai" \
 -e MINIO_ROOT_USER=admin \
 -e MINIO_ROOT_PASSWORD=admin123 \
 -v /home/minio/data:/data \
--v /home/minio/config:/root/.minio \
-minio/minio:latest server /data --console-address ":9001"
+-v /home/minio/conf:/root/.minio \
+minio/minio:RELEASE.2022-04-12T06-55-35Z server /data --console-address ":19001"
 ```
 
 ## keycloak
