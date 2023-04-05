@@ -473,6 +473,7 @@ mkdir -p /home/nacos/{logs,conf}
 docker  run \
 --name nacos -d \
 -p 8848:8848 \
+-p 9848:9848 \
 nacos/nacos-server:v2.0.4
 ```
 
@@ -491,13 +492,14 @@ docker rm nacos
 docker  run \
 --name nacos -d \
 -p 8848:8848 \
+-p 9848:9848 \
 --network demo-network \
 --privileged=true \
 --restart=always \
 -e MODE=standalone \
 -v /home/nacos/logs:/home/nacos/logs \
 -v /home/nacos/conf/application.properties:/home/nacos/conf/application.properties \
-nacos/nacos-server:v2.0.4
+nacos/nacos-server:v2.2.1
 ```
 
 ##### 持久化SQL,注意版本
