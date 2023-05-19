@@ -317,7 +317,7 @@ mkdir -p /home/portainer/data
 ```
 
 ```
-docker run -d  --name portainer -p 900:9000 -v /var/run/docker.sock:/var/run/docker.sock -v /home/portainer/data:/data --restart always --privileged=true portainer/portainer-ce:latest
+docker run -d  --name portainer -p 9000:9000 -v /var/run/docker.sock:/var/run/docker.sock -v /home/portainer/data:/data --restart always --privileged=true portainer/portainer-ce:latest
 ```
 
 ```
