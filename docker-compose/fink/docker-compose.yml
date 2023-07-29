@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  jobmanager:
+    image: flink:1.17.1-scala_2.12-java11
+    container_name: flink_jobmanager
+    expose:
+      - "6123"
+    ports:
+      - "8081:8081"
+    command: jobmanager
+    volumes:
+      - ./lib:/opt/flink/lib:rw
+
+  taskmanager:
+    image: flink:1.17.1-scala_2.12-java11
+    container_name: flink_taskmanager
+    depends_on:
+      - jobmanager
+    command: taskmanager
+    volumes:
+      - ./lib:/opt/flink/lib:rw

@@ -351,7 +351,6 @@ docker cp mysql8:/etc/mysql/my.cnf /home/mysql8/conf/my.cnf
 docker run \
 --name mysql8 -d \
 -p 3306:3306 \
---network demo-network \
 -e MYSQL_ROOT_PASSWORD=123456 \
 --restart=always \
 --privileged=true \
@@ -493,10 +492,12 @@ docker  run \
 --name nacos -d \
 -p 8848:8848 \
 -p 9848:9848 \
---network demo-network \
 --privileged=true \
 --restart=always \
 -e MODE=standalone \
+-e JVM_XMS=256m \
+-e JVM_XMX=256m \
+-e JVM_XMN=256m \
 -v /home/nacos/logs:/home/nacos/logs \
 -v /home/nacos/conf/application.properties:/home/nacos/conf/application.properties \
 nacos/nacos-server:v2.2.1
@@ -513,15 +514,51 @@ https://github.com/alibaba/nacos/blob/2.0.4/distribution/conf/nacos-mysql.sql
 ### 命令
 
 ```
+docker pull seataio/seata-server:1.4.2
+```
+
+```
 docker run --name demo-seata -d \
 -p 8091:8091 \
---network demo-network \
 --privileged=true \
 --restart=always \
 -e SEATA_PORT=8091 \
--v /home/seata/conf/registry.conf:/seata-server/resources/registry.conf \
--v /home/seata/conf/file.conf:/seata-server/resources/file.conf \
+seataio/seata-server:1.4.2
+```
+
+
+
+```
+docker cp demo-seata:/seata-server/resources/registry.conf /root/mydata/seata/resources/registry.conf
+docker cp demo-seata:/seata-server/resources/file.conf /root/mydata/seata/resources/file.conf
+```
+
+
+
+```
+docker stop demo-seata
+```
+
+```
+docker rm demo-seata
+```
+
+```
+ ## 指定ip地址，NettyClientChannelManager可通过外网ip访问
+```
+
+
+
+```
+docker run --name seata -d \
+-p 8091:8091 \
+--privileged=true \
+--restart=always \
+-e SEATA_PORT=8091 \
+-v /home/seata/resources/registry.conf:/seata-server/resources/registry.conf \
+-v /home/seata/resources/file.conf:/seata-server/resources/file.conf \
 -v /home/seata/logs:/root/logs \
+-e SEATA_IP=192.168.101.143 \
 seataio/seata-server:1.4.2
 ```
 
@@ -584,7 +621,6 @@ docker cp demo-nginx:/etc/nginx/conf.d/default.conf /home/nginx/conf.d/default.c
 ```
 docker run --name demo-nginx -d \
 -p 3500:80 \
---network demo-network \
 -v /home/nginx/html:/usr/share/nginx/html \
 -v /home/nginx/conf/nginx.conf:/etc/nginx/nginx.conf \
 -v /home/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf \
@@ -593,7 +629,7 @@ nginx:1.21.6-alpine
 ```
 
 ```
-docker run -i -t --network demo-network   -p 50070:50070 -p 9000:9000 -p 8088:8088 -p 8040:8040 -p 8042:8042  -p 49707:49707  -p 50010:50010  -p 50075:50075  -p 50090:50090 sequenceiq/hadoop-docker:2.6.0 /etc/bootstrap.sh -bash
+docker run -i -t -p 50070:50070 -p 9000:9000 -p 8088:8088 -p 8040:8040 -p 8042:8042  -p 49707:49707  -p 50010:50010  -p 50075:50075  -p 50090:50090 sequenceiq/hadoop-docker:2.6.0 /etc/bootstrap.sh -bash
 ```
 
 ```
@@ -630,8 +666,9 @@ auth=true
 ```
 docker run --name mongodb -d \
 -p 27017:27017 \
---network=demo-network \
 --privileged=true \
+--restart=always \
+-e TZ=Asia/Shanghai \
 -e MONGO_INITDB_ROOT_USERNAME=admin \
 -e MONGO_INITDB_ROOT_PASSWORD=admin123 \
 -v /home/mongodb/data:/data/db \
@@ -639,6 +676,18 @@ docker run --name mongodb -d \
 -v /home/mongodb/conf:/data/configdb \
 mongo:4.4.13-focal
 ```
+
+### 设置账号密码
+
+```
+docker exec -it mongodb mongo admin
+```
+
+```
+db.createUser({user:'root',pwd:'123456',roles:['userAdminAnyDatabase']});
+```
+
+
 
 ## minio
 
@@ -715,6 +764,8 @@ docker exec -it rabbitmq /bin/bash
 rabbitmq-plugins enable rabbitmq_management
 ```
 
+
+
 ## rocketmq
 
 ### 命令
@@ -743,6 +794,8 @@ rocketmqinc/rocketmq:4.9.4 sh mqnamesrv
 ```
 使用 docker compose
 ```
+
+
 
 ## kafaka
 
@@ -780,4 +833,90 @@ docker run -d -it --name=pulsar-manager \
 --link pulsar-standalone \
 apachepulsar/pulsar-manager:v0.3.0
 ```
+
+
+
+## emqx
+
+````
+docker run -d --restart=always  --privileged=true  --name emqx \
+-p 1883:1883 \
+-p 8081:8081 \
+-p 8083:8083 \
+-p 8084:8084 \
+-p 8883:8883 \
+-p 18083:18083 \
+-v /root/mydata/emqx/data:/opt/emqx/data \
+emqx/emqx:5.1.0
+````
+
+
+
+## iotdb
+
+先创建一个指定ip的网关
+
+````
+docker network create --driver=bridge --subnet=172.18.0.0/16 --gateway=172.18.0.1 iotdb
+````
+
+````
+# docker-compose-1c1d.yml
+version: "3"
+services:
+  iotdb-service:
+    image: apache/iotdb:1.1.0-standalone
+    hostname: iotdb-service
+    container_name: iotdb-service
+    ports:
+      - "6667:6667"
+    environment:
+      - cn_internal_address=iotdb-service
+      - cn_internal_port=10710
+      - cn_consensus_port=10720
+      - cn_target_config_node_list=iotdb-service:10710
+      - dn_rpc_address=iotdb-service
+      - dn_internal_address=iotdb-service
+      - dn_rpc_port=6667
+      - dn_mpp_data_exchange_port=10740
+      - dn_schema_region_consensus_port=10750
+      - dn_data_region_consensus_port=10760
+      - dn_target_config_node_list=iotdb-service:10710
+    volumes:
+        - ./data:/iotdb/data
+        - ./logs:/iotdb/logs
+    networks:
+      iotdb:
+        ipv4_address: 172.18.0.6
+
+networks:
+  iotdb:
+    external: true
+````
+
+
+
+## flink
+
+### 1. 不挂在lib先启动
+
+复制lib
+
+```
+docker cp flink_taskmanager:/opt/flink/lib ./lib
+```
+
+授权777
+
+```
+chmod -R 777 lib/
+```
+
+### 2.再启动 docker-compose
+
+```
+docker-compose up -d
+```
+
+
 
