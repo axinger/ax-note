@@ -11,6 +11,64 @@ curl -sSL https://get.daocloud.io/docker | sh
 --privileged=true \ 容器内部拥有root权限
 ```
 
+##  1.镜像安装
+
+```
+curl -fsSL https://get.docker.com | bash -s docker --mirror Aliyun
+```
+
+```
+vim /etc/docker/daemon.json
+```
+
+使用南京大学镜像
+
+```
+{
+    "registry-mirrors": [
+        "https://docker.nju.edu.cn/"
+    ]
+}
+```
+
+
+
+## 2.CentOS 7（使用 yum 进行安装）
+
+### 1: 安装必要的一些系统工具
+
+```
+sudo yum install -y yum-utils device-mapper-persistent-data lvm2
+```
+
+### 2: 添加软件源信息
+
+```
+sudo yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+
+```
+
+### 3: 加入镜像源地址
+
+```
+sudo sed -i 's+download.docker.com+mirrors.aliyun.com/docker-ce+' /etc/yum.repos.d/docker-ce.repo
+```
+
+### 4: 更新并安装Docker-CE
+
+```
+sudo yum makecache fast
+sudo yum -y install docker-ce
+```
+
+### 开启Docker服务
+
+```
+sudo service docker start
+```
+
+
+
 ### 1.磁盘
 
 ```
@@ -345,7 +403,18 @@ mysql:8.0.28
 
 ```
 docker cp mysql8:/etc/mysql/my.cnf /home/mysql8/conf/my.cnf
+docker cp mysql8:/etc/mysql/conf.d/ /home/mysql8/conf.d/
 ```
+
+```
+docker stop mysql8
+```
+
+```
+docker rm mysql8
+```
+
+
 
 ```
 docker run \
@@ -357,10 +426,20 @@ docker run \
 -v /home/mysql8/data:/var/lib/mysql \
 -v /home/mysql8/logs:/var/log/mysql \
 -v /home/mysql8/conf/my.cnf:/etc/mysql/my.cnf \
+-v /home/mysql8/conf/conf.d:/etc/mysql/conf.d \
 mysql:8.0.28
 ```
 
 
+
+```
+docker exec -it mysql bash
+```
+
+```
+mysql -u root -p
+ALTER USER 'root'@'localhost' IDENTIFIED BY 'root!';
+```
 
 
 
@@ -379,12 +458,6 @@ symbolic-links=0
 !includedir /etc/mysql/conf.d/
 
 
-## 阿里云,下面不要使用
-# 默认使用“mysql_native_password”插件认证
-default_authentication_plugin= mysql_native_password
-#Accept connections from any IP address,客户端远程
-bind-address = 0.0.0.0
-
 # 设置mysql客户端默认字符集
 default-character-set=utf8
 [client]
@@ -400,6 +473,7 @@ docker exec -it mysql8 /bin/bash
 mysql -u root -p
 use mysql;
 update user set host = '%' where user ='root';
+select user,host from user where user = 'root';
 flush privileges;
 ```
 
@@ -621,15 +695,12 @@ docker cp demo-nginx:/etc/nginx/conf.d/default.conf /home/nginx/conf.d/default.c
 ```
 docker run --name demo-nginx -d \
 -p 3500:80 \
+--restart always
 -v /home/nginx/html:/usr/share/nginx/html \
 -v /home/nginx/conf/nginx.conf:/etc/nginx/nginx.conf \
 -v /home/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf \
 -v /home/nginx/log:/var/log/nginx \
 nginx:1.21.6-alpine
-```
-
-```
-docker run -i -t -p 50070:50070 -p 9000:9000 -p 8088:8088 -p 8040:8040 -p 8042:8042  -p 49707:49707  -p 50010:50010  -p 50075:50075  -p 50090:50090 sequenceiq/hadoop-docker:2.6.0 /etc/bootstrap.sh -bash
 ```
 
 ```
