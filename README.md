@@ -94,16 +94,16 @@ systemctl stop docker
 移动docker目录
 
 ```
-mv /var/lib/docker /home/docker_home
+mv /var/lib/docker /home
 ```
 
 创建软链接
 
-- /home/docker_home为源文件目录，也就是新设置的docker存储目录
-- /var/lib/docker为软链接目标目录，与此目录建立链接后，相当于原来的docker配置保持不变，但真正的存储目录是其背后所指向的/home/docker_home
+- /home/docker，也就是新设置的docker存储目录
+- /var/lib/docker为软链接目标目录，与此目录建立链接后，相当于原来的docker配置保持不变，但真正的存储目录是其背后所指向的/home/docker
 
 ```
-ln -s /home/docker_home /var/lib/docker
+ln -s /home/docker /var/lib/docker
 ```
 
 启动docker服务
@@ -112,7 +112,7 @@ ln -s /home/docker_home /var/lib/docker
 systemctl start docker
 ```
 
-查看/var/lib/目录，docker目录是一个软链接，指向/home/docker_home，配置正确
+查看/var/lib/目录，docker目录是一个软链接，指向/home/docker，配置正确
 
 ```
 ls -al /var/lib
