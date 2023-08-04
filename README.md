@@ -839,22 +839,11 @@ rabbitmq-plugins enable rabbitmq_management
 
 ## rocketmq
 
-### 命令
+###  命令
 
-```
-mkdir -p /home/rocketmq/logs /home/rocketmq/store
-
-```
-
-```
-docker run -d --restart=always --name rocketmq \
---privileged=true -p 9876:9876 \
--v /home/rocketmq/logs:/root/logs \
--v /home/rocketmq/store:/root/store \
--e "MAX_POSSIBLE_HEAP=100000000" \
-rocketmqinc/rocketmq:4.9.4 sh mqnamesrv
-
-```
+````
+见docker compse
+````
 
 
 
@@ -863,7 +852,7 @@ rocketmqinc/rocketmq:4.9.4 sh mqnamesrv
 ### 命令
 
 ```
-使用 docker compose
+见docker compse
 ```
 
 
@@ -873,7 +862,7 @@ rocketmqinc/rocketmq:4.9.4 sh mqnamesrv
 ### 命令
 
 ```
-使用 docker compose
+见docker compse
 ```
 
 测试工具
