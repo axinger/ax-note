@@ -1,27 +1,62 @@
 # 1.命令
 
-## 1.国内安装docker
+## 1镜像安装
 
+```text
+Docker用户组是在Docker安装过程中由Docker安装程序自动创建的。
+在安装Docker时，通常会创建一个名为"docker"的用户组，并将当前用户添加到该用户组中，以便非root用户也能运行Docker命令。
+
+确保您的用户已经加入了docker用户组，这样您就可以在非root用户下运行Docker命令。
+如果您还没有加入docker用户组，可以使用以下命令将当前用户添加到docker组（需要管理员权限）：
 ```
+
+```shell
+sudo usermod -aG docker $USER
+```
+
+```text
+Docker用户组是在Docker安装过程中由Docker安装程序自动创建的。
+在安装Docker时，通常会创建一个名为"docker"的用户组，并将当前用户添加到该用户组中，以便非root用户也能运行Docker命令。
+
+确保您的用户已经加入了docker用户组，这样您就可以在非root用户下运行Docker命令。
+如果您还没有加入docker用户组，可以使用以下命令将当前用户添加到docker组（需要管理员权限）：
+```
+
+```shell
+id
+```
+
+```shell
+groups
+```
+
+
+
+### 1.国内安装docker
+```shell
 curl -sSL https://get.daocloud.io/docker | sh
 ```
 
-```
+```shell
 --restart=always \ 自启动
 --privileged=true \ 容器内部拥有root权限
 ```
 
-## 1.镜像安装
+### 2.阿里云镜像安装
 
-```
+```shell
 curl -fsSL https://get.docker.com | bash -s docker --mirror Aliyun
 ```
 
-```
+```shell
 vim /etc/docker/daemon.json
 ```
 
-使用南京大学镜像
+### 3.使用南京大学镜像
+
+```shell
+sudo chown $USER:$USER daemon.json 
+```
 
 ```
 {
@@ -31,63 +66,73 @@ vim /etc/docker/daemon.json
 }
 ```
 
+### 4.系统开关机命令
+
+```shell
+启动: systemctl start docker
+停止: systemctl stop docker
+重启: systemctl restart docker
+查看状态: systemctl status docker
+开机启动: systemctl enable docker
+```
 
 
 ## 2.CentOS 7（使用 yum 进行安装）
 
 ### 1: 安装必要的一些系统工具
 
-```
+```shell
 sudo yum install -y yum-utils device-mapper-persistent-data lvm2
 ```
 
 ### 2: 添加软件源信息
 
-```
+```shell
 sudo yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
 
 ```
 
 ### 3: 加入镜像源地址
 
-```
+```shell
 sudo sed -i 's+download.docker.com+mirrors.aliyun.com/docker-ce+' /etc/yum.repos.d/docker-ce.repo
 ```
 
 ### 4: 更新并安装Docker-CE
 
-```
+```shell
 sudo yum makecache fast
 sudo yum -y install docker-ce
 ```
 
 ### 开启Docker服务
 
-```
+```shell
 sudo service docker start
 ```
 
 
+## 3修改存储位置
 
-### 1.磁盘
+磁盘
 
-```
+```shell
 df -h
 ```
 
 ![image-20230315150120299](.\img\image-20230315150120299.png)
 
-### 2.修改软连接
+###  3.1修改软连接
 
 docker存储路径
 
-```
+```shell
 docker info | grep "Docker Root Dir"
 ```
 
 停掉docker服务
 
-```
+```shell
 systemctl stop docker
 ```
 
@@ -97,47 +142,56 @@ systemctl stop docker
 mv /var/lib/docker /home
 ```
 
-创建软链接
+文件夹赋值给当前用户
+
+```shell
+sudo chown $USER:$USER  docker/
+```
+
 
 - /home/docker，也就是新设置的docker存储目录
 - /var/lib/docker为软链接目标目录，与此目录建立链接后，相当于原来的docker配置保持不变，但真正的存储目录是其背后所指向的/home/docker
 
-```
+```shell
 ln -s /home/docker /var/lib/docker
-```
-
-启动docker服务
-
-```
-systemctl start docker
 ```
 
 查看/var/lib/目录，docker目录是一个软链接，指向/home/docker，配置正确
 
-```
+```shell
 ls -al /var/lib
 ```
 
-```
+```shell
 ll /var/lib/docker
 ```
 
 ![image-20230315150239718](.\img\image-20230315150239718.png)
 
-## 2.查看气启动参数
+### 3.2 data-root
+文件夹赋值给当前用户
 
-```
-runlike 容器
+```shell
+sudo chown $USER:$USER  /home/lib
 ```
 
-## 3.系统开关机命令
-
+```shell
+mv /var/lib/docker /home/lib
 ```
-启动: systemctl start docker
-停止: systemctl stop docker
-重启: systemctl restart docker
-查看状态: systemctl status docker
-开机启动: systemctl enable docker
+
+```json
+{
+  "registry-mirrors": [
+    "https://docker.nju.edu.cn/"
+  ],
+  "data-root": "/home/docker"
+}
+```
+
+启动docker服务
+
+```shell
+sudo systemctl start docker
 ```
 
 
@@ -189,11 +243,7 @@ docker export b91d9ad83efa > tomcat80824.tar
 docker import tomcat80824.tar
 ```
 
-
-
 ## 5.容器命令
-
-
 
 ```
 启动交互式容器(前台命令行)
@@ -244,6 +294,14 @@ docker logs -f -t --tail=5 容器名
 ```
 docker container update restart=always 容器名或id
 ```
+
+### 5.查看容器启动参数
+
+```
+runlike 容器
+```
+
+
 
 ## 6.制作镜像
 
@@ -356,10 +414,6 @@ server {
 
 ```
 
-
-
-
-
 # 2.常用容器
 
 ## portainer-ce 图形界面
@@ -382,8 +436,6 @@ docker run -d  --name portainer -p 9000:9000 -v /var/run/docker.sock:/var/run/do
 admin
 abcd1234567890
 ```
-
-
 
 ## mysql
 
@@ -414,8 +466,6 @@ docker stop mysql8
 docker rm mysql8
 ```
 
-
-
 ```
 docker run \
 --name mysql8 -d \
@@ -430,8 +480,6 @@ docker run \
 mysql:8.0.28
 ```
 
-
-
 ```
 docker exec -it mysql bash
 ```
@@ -440,8 +488,6 @@ docker exec -it mysql bash
 mysql -u root -p
 ALTER USER 'root'@'localhost' IDENTIFIED BY 'root!';
 ```
-
-
 
 ### 配置文件 my.cnf
 
@@ -483,11 +529,10 @@ flush privileges;
 
 ```
 docker run --name demo-pgsql  -d \
--e POSTGRES_USER=root \
 -e POSTGRES_PASSWORD=123456 \
 -p 5432:5432 \
 -v /home/postgresql/data:/var/lib/postgresql/data \
-postgres:14.6
+postgres:14.6-alpine
 ```
 
 ### 修改连接
@@ -500,11 +545,9 @@ docker exec -it demo-pgsql bash
 psql -h localhost -p 5432 -U postgres --password
 ```
 
-
-
 ## nacos
 
-### 低版本(1.4.x)
+### 1. 低版本(1.4.x)
 
 ```
 挂载的文是/home/nacos/init.d/custom.properties
@@ -524,7 +567,7 @@ docker run --name nacos -d \
 nacos/nacos-server:1.4.0
 ```
 
-### 1.4.2 及 2.0.3版本
+### 2. 1.4.2 及 2.0.3版本
 
 ```
 mkdir -p /home/nacos/{logs,conf}
@@ -560,8 +603,6 @@ docker stop nacos
 docker rm nacos
 ```
 
-
-
 ```
 docker  run \
 --name nacos -d \
@@ -583,6 +624,59 @@ nacos/nacos-server:v2.2.1
 ```
 https://github.com/alibaba/nacos/blob/2.0.4/distribution/conf/nacos-mysql.sql
 ```
+### 3. docker compose 
+
+#### 连接mysql用内部ip,也可以用宿主机ip
+
+ 
+
+```shell
+version: '3'
+services:
+  mysql:
+    image: mysql:8.0.28
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: nacos
+    networks:
+      internal:
+        ipv4_address: 172.18.0.2
+
+  nacos:
+    image: nacos/nacos-server:v2.0.4
+    ports:
+      - "8848:8848"
+    depends_on:
+      - mysql
+    networks:
+      internal:
+        ipv4_address: 172.18.0.3
+
+networks:
+  mynetwork:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.18.0.0/16
+          gateway: 172.18.0.1
+
+```
+
+```
+spring.datasource.platform=mysql
+db.num=1
+db.url.0=jdbc:mysql://172.18.0.2:3306/nacos
+db.user=root
+db.password=123456
+```
+
+```
+在 Docker Compose 中，subnet 字段用于设置 IP 地址范围的子网掩码。子网掩码决定了 IP 地址范围的大小。当你设置了 subnet 为 172.18.1.0/16 时，实际上是将 IP 地址范围划分为一个 /16 的子网，而不是指定特定的 IP 范围。
+
+正常情况下，一个 /16 子网可以包含约 65536 个 IP 地址。所以，如果你设置了 subnet: 172.18.1.0/16，它实际上会涵盖从 172.18.0.0 到 172.18.255.255 的所有 IP 地址
+```
+
+
 
 ## seata
 
@@ -601,14 +695,10 @@ docker run --name demo-seata -d \
 seataio/seata-server:1.4.2
 ```
 
-
-
 ```
 docker cp demo-seata:/seata-server/resources/registry.conf /root/mydata/seata/resources/registry.conf
 docker cp demo-seata:/seata-server/resources/file.conf /root/mydata/seata/resources/file.conf
 ```
-
-
 
 ```
 docker stop demo-seata
@@ -621,8 +711,6 @@ docker rm demo-seata
 ```
  ## 指定ip地址，NettyClientChannelManager可通过外网ip访问
 ```
-
-
 
 ```
 docker run --name seata -d \
@@ -643,8 +731,6 @@ seataio/seata-server:1.4.2
 新版本 seata+nacos 需要在nacos导入配置文件,官网执行sh脚本
 https://github.com/seata/seata/blob/develop/script/server/db/mysql.sql
 ```
-
-
 
 ## redis
 
@@ -708,8 +794,6 @@ nginx:1.21.6-alpine
 配置请求转发,在conf.d/default.conf 中配置
 ```
 
-
-
 ## mongodb
 
 ### 文件夹
@@ -730,8 +814,6 @@ fork=true
 noprealloc=true
 auth=true
 ```
-
-
 
 ### 命令
 
@@ -758,8 +840,6 @@ docker exec -it mongodb mongo admin
 ```
 db.createUser({user:'root',pwd:'123456',roles:['userAdminAnyDatabase']});
 ```
-
-
 
 ## minio
 
@@ -836,8 +916,6 @@ docker exec -it rabbitmq /bin/bash
 rabbitmq-plugins enable rabbitmq_management
 ```
 
-
-
 ## rocketmq
 
 ### 命令
@@ -846,8 +924,6 @@ rabbitmq-plugins enable rabbitmq_management
 见docker compse
 ````
 
-
-
 ## elk
 
 ### 命令
@@ -855,8 +931,6 @@ rabbitmq-plugins enable rabbitmq_management
 ```
 见docker compse
 ```
-
-
 
 ## kafaka
 
@@ -871,8 +945,6 @@ rabbitmq-plugins enable rabbitmq_management
 ```
 docker run -d -p 8889:8889 freakchicken/kafka-ui-lite
 ```
-
-
 
 ## pulsar
 
@@ -895,8 +967,6 @@ docker run -d -it --name=pulsar-manager \
 apachepulsar/pulsar-manager:v0.3.0
 ```
 
-
-
 ## emqx
 
 ````
@@ -910,8 +980,6 @@ docker run -d --restart=always  --privileged=true  --name emqx \
 -v /root/mydata/emqx/data:/opt/emqx/data \
 emqx/emqx:5.1.0
 ````
-
-
 
 ## iotdb
 
@@ -954,8 +1022,6 @@ networks:
   iotdb:
     external: true
 ````
-
-
 
 ## flink
 
