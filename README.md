@@ -11,7 +11,7 @@ curl -sSL https://get.daocloud.io/docker | sh
 --privileged=true \ 容器内部拥有root权限
 ```
 
-##  1.镜像安装
+## 1.镜像安装
 
 ```
 curl -fsSL https://get.docker.com | bash -s docker --mirror Aliyun
@@ -278,7 +278,7 @@ EXPOSE 11090
 
 ```
 
-### 2. nginx 
+### 2. nginx
 
 Dockerfile
 
@@ -477,16 +477,17 @@ select user,host from user where user = 'root';
 flush privileges;
 ```
 
-##  postgres
+## postgres
 
 ### 命令
 
 ```
 docker run --name demo-pgsql  -d \
+-e POSTGRES_USER=root \
 -e POSTGRES_PASSWORD=123456 \
 -p 5432:5432 \
 -v /home/postgresql/data:/var/lib/postgresql/data \
-postgres:14.6-alpine
+postgres:14.6
 ```
 
 ### 修改连接
@@ -839,7 +840,7 @@ rabbitmq-plugins enable rabbitmq_management
 
 ## rocketmq
 
-###  命令
+### 命令
 
 ````
 见docker compse
