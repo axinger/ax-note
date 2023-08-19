@@ -139,7 +139,7 @@ systemctl stop docker
 移动docker目录
 
 ```
-mv /var/lib/docker /home
+mv /var/lib/docker /home/lib
 ```
 
 文件夹赋值给当前用户
@@ -169,6 +169,12 @@ ll /var/lib/docker
 ![image-20230315150239718](.\img\image-20230315150239718.png)
 
 ### 3.2 data-root
+当前用户添加到docker组中
+
+```
+sudo usermod -aG docker $USER
+```
+
 文件夹赋值给当前用户
 
 ```shell
@@ -450,7 +456,7 @@ docker run \
 --name mysql8 -d \
 -p 3306:3306 \
 -e MYSQL_ROOT_PASSWORD=123456 \
-mysql:8.0.28
+mysql:8.0.31
 ```
 
 ```
@@ -472,12 +478,11 @@ docker run \
 -p 3306:3306 \
 -e MYSQL_ROOT_PASSWORD=123456 \
 --restart=always \
---privileged=true \
 -v /home/mysql8/data:/var/lib/mysql \
 -v /home/mysql8/logs:/var/log/mysql \
 -v /home/mysql8/conf/my.cnf:/etc/mysql/my.cnf \
 -v /home/mysql8/conf/conf.d:/etc/mysql/conf.d \
-mysql:8.0.28
+mysql:8.0.31
 ```
 
 ```
@@ -628,38 +633,8 @@ https://github.com/alibaba/nacos/blob/2.0.4/distribution/conf/nacos-mysql.sql
 
 #### 连接mysql用内部ip,也可以用宿主机ip
 
- 
-
 ```shell
-version: '3'
-services:
-  mysql:
-    image: mysql:8.0.28
-    environment:
-      MYSQL_ROOT_PASSWORD: 123456
-      MYSQL_DATABASE: nacos
-    networks:
-      internal:
-        ipv4_address: 172.18.0.2
-
-  nacos:
-    image: nacos/nacos-server:v2.0.4
-    ports:
-      - "8848:8848"
-    depends_on:
-      - mysql
-    networks:
-      internal:
-        ipv4_address: 172.18.0.3
-
-networks:
-  mynetwork:
-    ipam:
-      driver: default
-      config:
-        - subnet: 172.18.0.0/16
-          gateway: 172.18.0.1
-
+见docker compose
 ```
 
 ```
@@ -1046,4 +1021,212 @@ docker-compose up -d
 ```
 
 
+
+# 3.linux
+
+## 1.文件
+
+### 改变文件权限
+
+```shell
+chmod
+```
+
+### 改变所有者
+
+```shell
+chown
+```
+
+### 改变所属组
+
+```bash
+chgrp
+```
+
+### 所有组,也可以加具体组名
+
+```shell
+getent group
+```
+
+### 所有用户,也可以加具体用户名
+
+```bash
+getent passwd
+```
+
+### 添加用户
+
+```bash
+sudo useradd -m xx
+```
+
+### 新增用户密码
+
+```bash
+sudo passwd xx
+```
+
+### 添加到docker组中
+
+```bash
+sudo usermod -aG docker xx
+```
+
+### 新增组
+
+```bash
+groupadd xx
+```
+
+### 更新组
+
+```
+exec su - $USER
+```
+
+查看当前用户
+
+```
+id
+```
+
+
+
+
+
+### 查找文件
+
+```
+find 搜索范围 选项
+```
+
+```
+-name 文件名
+-user 用户 
+-size 文件大小
+```
+
+### 过滤
+
+```
+-n 行号
+```
+
+```
+ll | grep -n info
+```
+
+
+
+```
+cat  文件名  |   grep -n  关键字
+```
+
+或者
+
+```
+grep -n 关键字  文件名
+```
+
+统计单词
+
+```
+wc
+```
+
+
+
+### 压缩解压
+
+1.gzip/gunzip 
+
+后缀.gz
+
+不能压缩文件夹,
+
+不保留原文件
+
+
+
+2.zip/unzip
+
+-d 指定目录
+
+
+
+3.tar打包,不是压缩
+
+```
+-z打包同时压缩
+
+-c 产生.tar打包文件
+
+-v显示详情
+-f指定压缩后文件名
+
+-x解包.tar文件
+-C解压到指定目录
+```
+
+```
+tar -zcvf 123.tar.gz  文件
+```
+
+```
+tar -zxvf 123.tar.gz -C /目录
+```
+
+
+
+
+
+## 2.磁盘
+
+### tree
+
+```
+ yum install tree
+```
+
+### du 文件夹大小
+
+```
+du
+```
+
+```
+-h 单位,自行显示,不能指定具体单位
+-a看子目录还包括文件
+-c显示所有文件及目录大小,显示总和
+-s值显示总和
+-max-depth=n 深度n层
+```
+
+### df 磁盘空间使用情况
+
+```
+df -h
+```
+
+### free 内存
+
+```
+free -h
+```
+
+### lsblk 设备挂载
+
+### ps 进程管理类
+
+
+
+## 3.脚本
+
+### xcall jps
+
+```
+ln -s /opt/module/jdk/bin/jps jps
+```
 
