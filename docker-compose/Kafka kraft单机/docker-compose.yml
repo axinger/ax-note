@@ -20,10 +20,9 @@ services:
       - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://192.168.101.143:19092
       - KAFKA_BROKER_ID=1
       - KAFKA_KRAFT_CLUSTER_ID=iZWRiSqjZAlYwlKEqHFQWI
-      # - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@172.23.0.11:9093,2@172.23.0.12:9093,3@172.23.0.13:9093
       - ALLOW_PLAINTEXT_LISTENER=yes
       # 设置broker最大内存，和初始内存
-      - KAFKA_HEAP_OPTS=-Xmx512M -Xms256M
+      - KAFKA_HEAP_OPTS=-Xmx256M -Xms256M
     volumes:
       - ./broker01:/bitnami/kafka:rw
     network_mode: host
