@@ -1020,6 +1020,42 @@ chmod -R 777 lib/
 docker-compose up -d
 ```
 
+## superset
+```text
+
+docker run -d -p 28080:8088 -e "SUPERSET_SECRET_KEY=abcd123456" --name superset apache/superset:2.1.1
+
+
+初始化用户，用户名admin，密码admin。
+
+
+docker exec -it superset superset fab create-admin \
+--username admin \
+--firstname Superset \
+--lastname Admin \
+--email admin@superset.com \
+--password admin
+
+
+将本地数据库迁移到最新版本。
+
+docker exec -it superset superset db upgrade
+
+
+
+执行汉化
+docker exec -it superset pybabel compile -d /app/superset/translations
+
+初始化
+docker exec -it superset superset init
+
+修改配置文件
+docker cp superset:/app/superset/config.py /root/mydata/superset/config.py
+
+
+docker cp /root/mydata/superset/config.py superset:/app/superset/config.py 
+```
+
 
 
 # 3.linux
