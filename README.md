@@ -816,6 +816,20 @@ docker exec -it mongodb mongo admin
 db.createUser({user:'root',pwd:'123456',roles:['userAdminAnyDatabase']});
 ```
 
+数据导出,在内部位置,然后cp
+
+```
+docker exec -it mongodb mongodump --username=cepai --password=123456 --out=/data/backup
+```
+
+数据导入,cp到容器内部
+
+```
+docker exec -it mongodb mongorestore --username=admin --password=yourpassword /data/backup
+```
+
+
+
 ## minio
 
 ### 命令
