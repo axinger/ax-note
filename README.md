@@ -806,7 +806,7 @@ docker run --name mongodb -d \
 mongo:4.4.13-focal
 ```
 
-### 设置账号密码
+### 创建新的账号密码
 
 ```
 docker exec -it mongodb mongo admin
