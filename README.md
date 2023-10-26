@@ -746,7 +746,7 @@ redis:7.0.4 redis-server /etc/redis/redis.conf
 ```
 mkdir -p /home/nginx/{conf,conf.d,html,log}
 
-docker run --name demo-nginx -p 8080:80 -d nginx
+docker run --name demo-nginx -p 8080:80 -d nginx:1.23
 docker cp demo-nginx:/etc/nginx/nginx.conf /home/nginx/conf/nginx.conf
 
 docker cp demo-nginx:/etc/nginx/conf.d/default.conf /home/nginx/conf.d/default.conf
@@ -762,7 +762,7 @@ docker run --name demo-nginx -d \
 -v /home/nginx/conf/nginx.conf:/etc/nginx/nginx.conf \
 -v /home/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf \
 -v /home/nginx/log:/var/log/nginx \
-nginx:1.21.6-alpine
+nginx:1.23
 ```
 
 ```
