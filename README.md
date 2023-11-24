@@ -148,6 +148,12 @@ mv /var/lib/docker /home/lib
 sudo chown $USER:$USER  docker/
 ```
 
+如容器在运行中可使用docker network connect 网络名 容器名加入到同一网络
+```docker
+docker network connect 网络名 容器名
+```
+
+
 
 - /home/docker，也就是新设置的docker存储目录
 - /var/lib/docker为软链接目标目录，与此目录建立链接后，相当于原来的docker配置保持不变，但真正的存储目录是其背后所指向的/home/docker
