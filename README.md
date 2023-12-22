@@ -460,7 +460,7 @@ mkdir -p /home/mysql8/{data,logs,conf}
 ```
 docker run \
 --name mysql8 -d \
--p 3306:3306 \
+-p 3308:3306 \
 -e MYSQL_ROOT_PASSWORD=123456 \
 mysql:8.0.31
 ```
@@ -1075,6 +1075,21 @@ docker cp superset:/app/superset/config.py /root/mydata/superset/config.py
 
 docker cp /root/mydata/superset/config.py superset:/app/superset/config.py 
 ```
+
+## xxl-job
+
+```
+docker run --name xxl-job-admin \
+-e PARAMS="--spring.datasource.url=jdbc:mysql://192.168.101.132:3308/xxl_job?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=Asia/Shanghai" \
+-e "spring.datasource.username=root" \ 
+-e "spring.datasource.password=123456" \
+-e "xxl.job.accessToken=abcd1234" \
+-p 18080:8080 \ 
+--restart=always \
+-d xuxueli/xxl-job-admin:2.4.0
+```
+
+
 
 
 
