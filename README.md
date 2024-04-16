@@ -76,8 +76,11 @@ sudo chown $USER:$USER daemon.json
 开机启动: systemctl enable docker
 ```
 
+## 2.使用 yum 进行安装
 
-## 2.CentOS 7（使用 yum 进行安装）
+```
+CentOS 7
+```
 
 ### 1: 安装必要的一些系统工具
 
@@ -237,9 +240,25 @@ rm -rf 文件名(输入docker images 查询到的简称,tab出全程)
 
 ### 3.镜像导出导入
 
+-- out
+
+```
+docker save -o myimage.tar myimage
+```
+
+-- input
+
+```
+docker load -i <image_file.tar>
+```
+
+或者
+
 ```
 docker save nginx > Nginx.tar
 ```
+
+Windows不识别
 
 ```
 docker load < Nginx.tar
@@ -426,6 +445,52 @@ server {
 
 ```
 
+## 7.networks
+
+### 1.创建网络
+
+```
+网络范围,和网关ip
+```
+
+
+
+```
+docker network create --subnet=172.19.0.0/16 --gateway=172.19.0.1  mynetwork
+```
+
+### 2.容器固定ip
+
+```
+docker run -d --name=my_container --net=mynetwork --ip=172.19.0.22 <image_name>
+```
+
+```dockerfile
+services:
+  my_service:
+    image: my_image
+    networks:
+      my_network:
+        ipv4_address: 172.18.0.22
+networks:
+  my_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.18.0.0/16
+
+```
+
+
+
+### 3.现有容器加入网关
+
+```
+docker network connect mynetwork my_container
+```
+
+
+
 # 2.常用容器
 
 ## portainer-ce 图形界面
@@ -452,6 +517,8 @@ abcd1234567890
 ## mysql
 
 ### 命令
+
+
 
 ```
 mkdir -p /home/mysql8/{data,logs,conf}
@@ -845,6 +912,14 @@ mkdir -p /home/minio/{data,conf}
 ```
 
 ```
+docker cp minio:/root/.minio /home/conf 
+```
+
+```
+docker cp minio:/data /home/data 
+```
+
+```
 docker run -p 19000:9000 -p 9031:9001 --name minio19000 \
 -d --restart=always \
 --privileged=true \
@@ -855,6 +930,24 @@ docker run -p 19000:9000 -p 9031:9001 --name minio19000 \
 -v /home/minio/conf:/root/.minio \
 minio/minio:RELEASE.2022-04-12T06-55-35Z server /data --console-address ":19001"
 ```
+
+Windows配置
+
+```
+docker run -d -p 19000:9000 -p 19001:9001 --name minio -e "MINIO_ROOT_USER=admin" -e "MINIO_ROOT_PASSWORD=12345678" -v D:\mydata\minio/data:/data -v D:\mydata\minio/conf:/root/.minio minio/minio:RELEASE.2024-04-06T05-26-02Z server /data --console-address ":19001"
+```
+
+```
+docker cp minio:/root/.minio D:\mydata\minio/conf 
+```
+
+```
+docker cp minio:/data D:\mydata\minio
+```
+
+
+
+
 
 ## keycloak
 
@@ -1091,9 +1184,87 @@ docker run --name xxl-job-admin \
 
 
 
+# 3 docker compose
+
+## 1.示例,网关
+
+```
+version: '3'
+services:
+  jeecg-boot-mysql:
+#    build:
+#      context: ./db
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_ROOT_HOST: '%'
+      TZ: Asia/Shanghai
+    restart: always
+    hostname: jeecg-boot-mysql
+    container_name: jeecg-boot-mysql
+    image: mysql:8.0.31
+#    command:
+#      --character-set-server=utf8mb4
+#      --collation-server=utf8mb4_general_ci
+#      --explicit_defaults_for_timestamp=true
+#      --lower_case_table_names=1
+#      --max_allowed_packet=128M
+#      --default-authentication-plugin=caching_sha2_password
+    volumes:
+      - type: bind
+        source: D:/mydata/mysql/data
+        target: /var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      mynetwork:
+        ipv4_address: 172.19.0.5
+
+  jeecg-boot-redis:
+    image: redis:7.0.4
+    ports:
+      - "6379:6379"
+    restart: always
+    hostname: jeecg-boot-redis
+    container_name: jeecg-boot-redis
+    networks:
+      mynetwork:
+        ipv4_address: 172.19.0.6
+
+  jeecg-boot-system:
+    build:
+      context: ./jeecg-module-system/jeecg-system-start
+    restart: on-failure
+    depends_on:
+      - jeecg-boot-mysql
+      - jeecg-boot-redis
+    image: zhongche/plc_app
+    container_name: plc_app
+    hostname: jeecg-boot-system
+    ports:
+      - "8080:8080"
+      - "12002:12002"
+    volumes:
+      - type: bind
+        source: D:/mydata/plc_app/assets
+        target: /assets
+    networks:
+      mynetwork:
+        ipv4_address: 172.19.0.10
+
+networks:
+  mynetwork:
+    name: mynetwork
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.19.0.0/16
+          gateway: 172.19.0.1
+
+```
 
 
-# 3.linux
+
+# 4.linux
 
 ## 1.文件
 
