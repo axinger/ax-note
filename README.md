@@ -1472,3 +1472,31 @@ free -h
 ln -s /opt/module/jdk/bin/jps jps
 ```
 
+## 4  解压
+
+```
+要解压以 .tar.gz 或 .tgz 扩展名结尾的文件，可以使用 tar 命令。通常，这些文件是使用 tar 和 gzip 压缩的
+
+体来说，上述命令的选项含义如下：
+
+    -x: 表示解压（提取）文件。
+    -z: 表示使用 gzip 压缩/解压缩。
+    -v: 表示详细模式，会显示解压的文件列表。
+    -f: 指定要解压的文件。
+
+```
+
+
+
+### 1. 解压到当前目录
+
+```
+tar -xzvf example.tar.gz
+```
+
+## 2.指定目录
+
+```
+tar -xzvf example.tar.gz -C /path/to/target/directory
+```
+

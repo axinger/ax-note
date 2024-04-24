@@ -1,22 +1,59 @@
-version: '3.8'
+#version: "3"
+#
+#services:
+#  jobmanager:
+#    image: flink:1.18.1-java17
+#    ports:
+#      - "18081:8081" # Expose Flink JobManager UI on host port 18081
+#    command: jobmanager
+#    volumes:
+#      - D:/mydata/flink/lib:/opt/flink/lib
+#      # Uncomment the following line if you have custom configuration files to mount
+#      # - D:/mydata/flink/jobmanager/conf:/opt/flink/conf
+#    environment:
+#      - |
+#        jobmanager.rpc.address: jobmanager
+#
+#  taskmanager:
+#    image: flink:1.18.1-java17
+#    depends_on:
+#      - jobmanager
+#    command: taskmanager
+#    deploy:
+#      replicas: 1 # Use `deploy.replicas` instead of `scale` in version 3 Compose file
+#    volumes:
+#      - D:/mydata/flink/lib:/opt/flink/lib
+#      # Uncomment the following line if you have custom configuration files to mount
+#      # - D:/mydata/flink/taskmanager/conf:/opt/flink/conf
+#    environment:
+#      - |
+#        jobmanager.rpc.address: jobmanager
+#        taskmanager.numberOfTaskSlots: 2
 
+version: "2.1"
 services:
   jobmanager:
-    image: flink:1.17.1-scala_2.12-java11
-    container_name: flink_jobmanager
+    image: flink:1.18.1-java17
     expose:
       - "6123"
     ports:
-      - "8081:8081"
+      - "18081:8081"
     command: jobmanager
     volumes:
-      - ./lib:/opt/flink/lib:rw
-
+      - D:/mydata/flink/lib:/opt/flink/lib
+    environment:
+      - JOB_MANAGER_RPC_ADDRESS=jobmanager
   taskmanager:
-    image: flink:1.17.1-scala_2.12-java11
-    container_name: flink_taskmanager
+    image: flink:1.18.1-java17
+    expose:
+      - "6121"
+      - "6122"
     depends_on:
       - jobmanager
     command: taskmanager
     volumes:
-      - ./lib:/opt/flink/lib:rw
+      - D:/mydata/flink/lib:/opt/flink/lib
+    links:
+      - "jobmanager:jobmanager"
+    environment:
+      - JOB_MANAGER_RPC_ADDRESS=jobmanager
