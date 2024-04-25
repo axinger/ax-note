@@ -1500,3 +1500,17 @@ tar -xzvf example.tar.gz
 tar -xzvf example.tar.gz -C /path/to/target/directory
 ```
 
+# 5 .SQL
+
+## 1. 查询中，含有数据库没有的字段
+
+```
+SELECT id,0 max_age FROM `t_student`
+```
+
+```
+0 max_age,  默认值 + 字段名
+```
+
+
+
