@@ -61,7 +61,11 @@ sudo chown $USER:$USER daemon.json
 ```
 {
     "registry-mirrors": [
-        "https://docker.nju.edu.cn/"
+    	"http://mirror.azure.cn/",
+    	"https://http://hub-mirror.c.163.com",
+    	"http://mirrors.ustc.edu.cn/",
+        "https://docker.nju.edu.cn/",
+        "https://docker.mirrors.tuna.tsinghua.edu.cn"
     ]
 }
 ```
@@ -158,11 +162,11 @@ docker network connect 网络名 容器名
 
 
 
-- /home/docker，也就是新设置的docker存储目录
+- /home/lib/docker，也就是新设置的docker存储目录
 - /var/lib/docker为软链接目标目录，与此目录建立链接后，相当于原来的docker配置保持不变，但真正的存储目录是其背后所指向的/home/docker
 
 ```shell
-ln -s /home/docker /var/lib/docker
+ln -s /home/lib/docker /var/lib/docker
 ```
 
 查看/var/lib/目录，docker目录是一个软链接，指向/home/docker，配置正确
@@ -177,7 +181,7 @@ ll /var/lib/docker
 
 ![image-20230315150239718](.\img\image-20230315150239718.png)
 
-### 3.2 data-root
+### 3.2  修改data-root
 当前用户添加到docker组中
 
 ```
@@ -194,12 +198,18 @@ sudo chown $USER:$USER  /home/lib
 mv /var/lib/docker /home/lib
 ```
 
+```shell
+vim /etc/docker/daemon.json
+```
+
+
+
 ```json
 {
   "registry-mirrors": [
     "https://docker.nju.edu.cn/"
   ],
-  "data-root": "/home/docker"
+  "data-root": "/home/lib/docker"
 }
 ```
 
@@ -622,6 +632,39 @@ docker exec -it demo-pgsql bash
 ```
 psql -h localhost -p 5432 -U postgres --password
 ```
+
+## SQL Server
+
+#### docker compose 
+
+
+
+```
+version: '3.1'
+services:
+  sqlserver-2022:
+    restart: always
+    container_name: sqlserver-2022
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    #端口映射
+    ports:
+      - 1433:1433
+    volumes:
+      - /home/mssql/data:/var/opt/mssql/data
+    #环境变量
+    environment:
+      - ACCEPT_EULA=Y
+      #SA用户密码长度必须至少为 8 个字符，并包含以下四组中的三组字符：大写字母、小写字母、10 位基数和符号
+      - SA_PASSWORD=Abcd!1234
+```
+
+#### Windows
+
+```
+docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=Abcd!1234" -p 1433:1433 --name mssql-2019 --hostname mssql-2019 -v D:\home\mssql\data:/var/opt/mssql/data -d mcr.microsoft.com/mssql/server:2019-latest
+```
+
+
 
 ## nacos
 
@@ -1544,4 +1587,165 @@ SELECT id,0 max_age FROM `t_student`
 ```
 
 
+
+# 6.Java脚本
+
+## 1.Windows脚本
+
+### 1.启动脚本
+
+```shell
+ @echo off
+ 
+ title Spring Boot Demo
+ java -jar spring-boot-demo.jar --server.config=application.yml
+ 
+ @pause
+```
+
+### 2.关闭脚本
+
+```shell
+ @echo off
+ 
+ set port=8090
+ for /f "tokens=1-5" %%i in ('netstat -ano^|findstr ":%port%"') do (
+     echo kill the process %%m who use the port %port%
+     taskkill /pid %%m -t -f
+ )
+```
+
+### 3.重启脚本
+
+```shell
+ @echo off
+ 
+ call ./shutdown.bat
+ call ./startup.bat
+ 
+ @pause
+```
+
+或
+
+```shell
+ @echo off
+ 
+ set port=8090
+ for /f "tokens=1-5" %%i in ('netstat -ano^|findstr ":%port%"') do (
+     echo kill the process %%m who use the port
+     taskkill /pid %%m -t -f
+     goto start
+ )
+ 
+ cd %~dp0
+ start java -jar spring-boot-demo.jar --server.config=application.yml
+ exit
+ :start
+ start java -jar spring-boot-demo.jar --server.config=application.yml
+ exit
+ 
+ @pause
+```
+
+## 2.Linux脚本
+
+### 1.启动脚本
+
+**startup.sh**
+
+```shell
+ startTime=`date +'%Y-%m-%d %H:%M:%S'`
+ 
+ #jar包文件路径
+ APP_PATH=/home/demo
+ 
+ #jar包文件名称
+ APP_NAME=$APP_PATH/spring-boot-demo.jar
+ 
+ #日志文件名称
+ LOG_FILE=$APP_PATH/spring-boot-demo_out.log
+ 
+ rm -rf $LOG_FILE
+ 
+ echo "开始停止服务"
+ 
+ #查询进程，并杀掉当前jar/java程序
+ pid=`ps -ef|grep $APP_NAME | grep -v grep | awk '{print $2}'`
+ if [ $pid ];then
+   echo "pid: $pid"
+   kill -15 $pid
+   echo "服务停止成功"
+ fi
+ 
+ sleep 2
+ 
+ #判断jar包文件是否存在，如果存在启动jar包，并实时查看启动日志
+ if test -e $APP_NAME;then
+   echo '文件存在，开始启动服务'
+   
+   #启动jar包，指向日志文件，2>&1 & 表示打开或指向同一个日志文件
+  nohup java -jar -Duser.timezone=GMT+08 $APP_NAME --server.config=application.yml > spring-boot-demo_out.log 2>&1 &
+   echo "服务启动中"
+   sleep 10s
+   
+   #通过检测日志来判断
+   while [ -f $LOG_FILE ]
+   do
+       success=`grep "Started SpringBootDemoApplication in " $LOG_FILE`
+       if [[ "$success" != "" ]]
+       then
+          break
+       else
+           sleep 1s
+       fi
+   
+       #开始检测启动失败标记
+       fail=`grep "Fail" $LOG_FILE`
+       if [[ "$fail" != "" ]]
+       then
+           echo "服务启动失败"
+          tail -f $LOG_FILE
+          break
+       else
+           sleep 1s
+       fi
+   done
+   echo "服务启动成功"
+   
+   endTime=`date +'%Y-%m-%d %H:%M:%S'`
+   startSecond=$(date --date="$startTime" +%s);
+   endSecond=$(date --date="$endTime" +%s);
+   
+   total=$((endSecond-startSecond))
+   echo "运行时间："$total"s"
+   echo "当前时间："$endTime
+ else
+   echo $APP_NAME ' 文件不存在'
+ fi
+```
+
+### 2.关闭脚本
+
+**shutdown.sh**
+
+```shell
+#jar包文件名称
+ APP_NAME=/data/demo/spring-boot-demo.jar
+ 
+ echo "开始停止服务"
+ 
+ #查询进程，并杀掉当前jar/java程序
+ pid=`ps -ef|grep $APP_NAME | grep -v grep | awk '{print $2}'`
+ 
+ echo "pid: $pid "
+ 
+ if [ $pid ];then
+   echo "pid: $pid"
+   kill -15 $pid
+   echo "服务停止成功"
+ else
+   echo "未找到对应服务"
+ fi
+```
 
