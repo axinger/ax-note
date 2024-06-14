@@ -48,29 +48,7 @@ curl -sSL https://get.daocloud.io/docker | sh
 curl -fsSL https://get.docker.com | bash -s docker --mirror Aliyun
 ```
 
-```shell
-vim /etc/docker/daemon.json
-```
-
-### 3.使用南京大学镜像
-
-```shell
-sudo chown $USER:$USER daemon.json 
-```
-
-```
-{
-    "registry-mirrors": [
-    	"http://mirror.azure.cn/",
-    	"https://http://hub-mirror.c.163.com",
-    	"http://mirrors.ustc.edu.cn/",
-        "https://docker.nju.edu.cn/",
-        "https://docker.mirrors.tuna.tsinghua.edu.cn"
-    ]
-}
-```
-
-### 4.系统开关机命令
+### 3.系统开关机命令
 
 ```shell
 启动: systemctl start docker
@@ -112,14 +90,14 @@ sudo yum makecache fast
 sudo yum -y install docker-ce
 ```
 
-### 开启Docker服务
+### 5.开启Docker服务
 
 ```shell
 sudo service docker start
 ```
 
 
-## 3修改存储位置
+## 3修改配置文件
 
 磁盘
 
@@ -181,7 +159,7 @@ ll /var/lib/docker
 
 ![image-20230315150239718](.\img\image-20230315150239718.png)
 
-### 3.2  修改data-root
+### 3.2   配置文件
 当前用户添加到docker组中
 
 ```
@@ -198,18 +176,36 @@ sudo chown $USER:$USER  /home/lib
 mv /var/lib/docker /home/lib
 ```
 
+没有文件，就新建一个
+
 ```shell
 vim /etc/docker/daemon.json
 ```
 
-
+配置内容
 
 ```json
 {
-  "registry-mirrors": [
-    "https://docker.nju.edu.cn/"
-  ],
-  "data-root": "/home/lib/docker"
+    "builder": {
+        "gc": {
+            "defaultKeepStorage": "20GB",
+            "enabled": true
+        }
+    },
+    "experimental": false,
+    "data-root": "/home/lib/docker",
+    "registry-mirrors": [
+        "https://c0tiwnf1.mirror.aliyuncs.com",
+        "https://dockerproxy.com",
+        "https://mirror.iscas.ac.cn",
+        "https://docker.m.daocloud.io",
+        "https://mirror.baidubce.com",
+        "http://mirror.azure.cn/",
+        "http://hub-mirror.c.163.com",
+        "http://mirrors.ustc.edu.cn/",
+        "https://docker.nju.edu.cn/",
+        "https://docker.mirrors.tuna.tsinghua.edu.cn"
+    ]
 }
 ```
 
@@ -255,6 +251,22 @@ rm -rf 文件名(输入docker images 查询到的简称,tab出全程)
 ```
 docker save -o myimage.tar myimage
 ```
+
+批量
+
+```
+docker save -o images.tar image1:tag1 image2:tag2
+```
+
+
+
+所有镜像
+
+```
+docker save -o all_images.tar $(docker images -aq)
+```
+
+
 
 -- input
 
