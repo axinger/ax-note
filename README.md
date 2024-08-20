@@ -515,6 +515,14 @@ docker network connect mynetwork my_container
 
 # 2.docker常用容器
 
+## 本教程网关  (mynetwork)
+
+```
+--net=mynetwork --ip=172.19.0.22
+```
+
+
+
 ## portainer-ce 图形界面
 
 ### 命令
@@ -538,9 +546,7 @@ abcd1234567890
 
 ## mysql
 
-### 命令
-
-
+### 1.命令
 
 ```
 mkdir -p /home/mysql8/{data,logs,conf}
@@ -580,6 +586,14 @@ docker run \
 mysql:8.0.31
 ```
 
+### 2.Windows安装
+
+```
+docker run --name mysql8 -d -p 3306:3306 -e MYSQL_ROOT_PASSWORD=123456  --net=mynetwork --ip=172.19.0.5 -v D:\home\mysql\data:/var/lib/mysql mysql:8.0.31
+```
+
+
+
 ```
 docker exec -it mysql bash
 ```
@@ -589,7 +603,7 @@ mysql -u root -p
 ALTER USER 'root'@'localhost' IDENTIFIED BY 'root!';
 ```
 
-### 配置文件 my.cnf
+### 3.配置文件 my.cnf
 
 ```
 [mysqld]
@@ -612,7 +626,7 @@ port=3306
 default-character-set=utf8
 ```
 
-### Navicat链接问题
+### 4.Navicat链接问题
 
 ```
 docker exec -it mysql8 /bin/bash
@@ -752,12 +766,28 @@ docker  run \
 nacos/nacos-server:v2.2.1
 ```
 
-##### 持久化SQL,注意版本
+### 3.Windows安装
+
+```
+docker run --name nacos -d -p 8848:8848 -p 9848:9848 -e MODE=standalone  --net=mynetwork --ip=172.19.0.10 -e JVM_XMS=256m -e JVM_XMX=256m -e JVM_XMN=256m nacos/nacos-server:v2.3.2
+```
+
+```
+docker run --name nacos -d -p 8848:8848 -p 9848:9848 -e MODE=standalone --privileged=true --net=mynetwork --ip=172.19.0.10 -e JVM_XMS=256m -e JVM_XMX=256m -e JVM_XMN=256m -v D:\home\nacos\conf\application.properties:/home/nacos/conf/application.properties nacos/nacos-server:v2.3.2
+```
+
+### 4.持久化SQL,注意版本
 
 ```
 https://github.com/alibaba/nacos/blob/2.0.4/distribution/conf/nacos-mysql.sql
 ```
-### 3. docker compose 
+```
+https://github.com/alibaba/nacos/blob/2.3.2/distribution/conf/mysql-schema.sql
+```
+
+
+
+### 5 docker compose 
 
 #### 连接mysql用内部ip,也可以用宿主机ip
 
@@ -837,7 +867,7 @@ https://github.com/seata/seata/blob/develop/script/server/db/mysql.sql
 
 ## redis
 
-建立挂载目录
+### 1.建立挂载目录
 
 ```
 mkdir -p /home/redis/conf
@@ -854,7 +884,7 @@ https://github.com/redis/redis/blob/unstable/redis.conf
 docker exec -it redis7 sh
 ```
 
-### 命令
+### 2.命令
 
 ```
 docker run --name redis7 -d \
@@ -864,8 +894,15 @@ docker run --name redis7 -d \
 -v /home/redis/redis.conf:/etc/redis/redis.conf \
 -v /home/redis/data:/data \
 redis:7.0.4 redis-server /etc/redis/redis.conf
+```
+
+### 3.Windows安装
 
 ```
+docker run --name redis7 -d -p 6379:6379 --net=mynetwork --ip=172.19.0.6 -v D:\home\redis\data:/data redis:7.0.4 redis-server
+```
+
+
 
 ## nginx
 
@@ -960,7 +997,7 @@ docker exec -it mongodb mongorestore --username=admin --password=yourpassword /d
 
 ## minio
 
-### 命令
+### Linux 命令
 
 ```
 mkdir -p /home/minio/{data,conf}
@@ -975,7 +1012,7 @@ docker cp minio:/data /home/data
 ```
 
 ```
-docker run -p 19000:9000 -p 9031:9001 --name minio19000 \
+docker run -p 19000:9000 -p 19001:9001 --name minio \
 -d --restart=always \
 --privileged=true \
 -e TZ="Asia/Shanghai" \
@@ -983,21 +1020,21 @@ docker run -p 19000:9000 -p 9031:9001 --name minio19000 \
 -e MINIO_ROOT_PASSWORD=admin123 \
 -v /home/minio/data:/data \
 -v /home/minio/conf:/root/.minio \
-minio/minio:RELEASE.2022-04-12T06-55-35Z server /data --console-address ":19001"
+minio/minio:RELEASE.2022-04-12T06-55-35Z server /data --console-address ":9001"
 ```
 
-Windows配置
+### Windows命令
 
 ```
-docker run -d -p 19000:9000 -p 19001:9001 --name minio -e "MINIO_ROOT_USER=admin" -e "MINIO_ROOT_PASSWORD=12345678" -v D:\mydata\minio/data:/data -v D:\mydata\minio/conf:/root/.minio minio/minio:RELEASE.2024-04-06T05-26-02Z server /data --console-address ":19001"
-```
-
-```
-docker cp minio:/root/.minio D:\mydata\minio/conf 
+docker run -d -p 19000:9000 -p 19001:9001 --name minio -e "MINIO_ROOT_USER=admin" -e "MINIO_ROOT_PASSWORD=12345678" --net=mynetwork --ip=172.19.0.11 -v D:\home\minio/data:/data -v D:\home\minio/conf:/root/.minio minio/minio:RELEASE.2024-07-16T23-46-41Z server /data --console-address ":9001"
 ```
 
 ```
-docker cp minio:/data D:\mydata\minio
+docker cp minio:/root/.minio D:\home\minio/conf 
+```
+
+```
+docker cp minio:/data D:\home\minio
 ```
 
 
