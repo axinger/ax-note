@@ -1,0 +1,16 @@
+version: '3'
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:25.0.5
+    environment:
+      KEYCLOAK_USER: 'admin'
+      KEYCLOAK_PASSWORD: 'admin123'
+      DB_VENDOR: 'MYSQL'
+      DB_ADDR: 'mysql'
+      DB_DATABASE: 'keycloak'
+      DB_USER: 'root'
+      DB_PASSWORD: '123456'
+    depends_on:
+      - mysql8
+    ports:
+      - "16301:8080"

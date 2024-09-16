@@ -1,6 +1,6 @@
-# 1.docker命令
+# 一、docker基础
 
-## 1镜像安装
+## 1docker安装
 
 ```text
 Docker用户组是在Docker安装过程中由Docker安装程序自动创建的。
@@ -42,15 +42,151 @@ curl -sSL https://get.daocloud.io/docker | sh
 --privileged=true \ 容器内部拥有root权限
 ```
 
-### 2.阿里云镜像安装
+### 2.阿里云镜像安装,也可以更新
+
+下载新的yum源文件
+
+```
+wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+```
+
+清除yum缓存
+
+```
+yum clean all
+```
+
+更新yum缓存
+
+```
+yum makecache
+```
+
+测试新的yum源
+
+```
+yum list
+```
+
+使用阿里镜像，安装、更新docker
 
 ```shell
 curl -fsSL https://get.docker.com | bash -s docker --mirror Aliyun
 ```
 
-### 3.系统开关机命令
+### 3.离线安装
+
+#### 1.下载文件
+
+```
+https://download.docker.com/linux/static/stable/x86_64/
+```
+
+#### 2.解压
+
+```
+tar -zxvf docker-24.0.6.tgz
+```
+
+#### 3.将解压之后的`docker`文件移到 `/usr/bin`目录下;
+
+```
+sudo cp docker/* /usr/bin/
+```
+
+#### 4.将`docker`注册成系统服务;
+
+````
+vim /etc/systemd/system/docker.service
+````
+
+````
+[Unit]
+Description=Docker Application Container Engine
+Documentation=https://docs.docker.com
+After=network-online.target firewalld.service
+Wants=network-online.target
+
+[Service]
+Type=notify
+ExecStart=/usr/bin/dockerd
+ExecReload=/bin/kill -s HUP $MAINPID
+LimitNOFILE=infinity
+LimitNPROC=infinity
+TimeoutStartSec=0
+Delegate=yes
+KillMode=process
+Restart=on-failure
+StartLimitBurst=3
+StartLimitInterval=60s
+
+[Install]
+WantedBy=multi-user.target
+````
+
+#### 5.给文件增加可执行权限
+
+```
+chmod +x /etc/systemd/system/docker.service
+systemctl daemon-reload 
+```
+
+#### 6.设置开机自启动
+
+```
+systemctl enable docker.service
+```
+
+#### 7.启动`docker`
+
+```
+systemctl enable docker.service
+```
+
+### 4.使用 yum 进行安装
+
+```
+CentOS 7
+```
+
+#### （1）、 安装必要的一些系统工具
 
 ```shell
+sudo yum install -y yum-utils device-mapper-persistent-data lvm2
+```
+
+#### （2）、 添加软件源信息
+
+```shell
+sudo yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+```
+
+#### （3）、  加入镜像源地址
+
+```shell
+sudo sed -i 's+download.docker.com+mirrors.aliyun.com/docker-ce+' /etc/yum.repos.d/docker-ce.repo
+```
+
+#### （4）、  更新并安装Docker-CE
+
+```shell
+sudo yum makecache fast
+sudo yum -y install docker-ce
+```
+
+#### （5）、 开启Docker服务
+
+```shell
+sudo service docker start
+```
+
+***
+
+
+
+### 5.系统开关机命令
+
+```
 启动: systemctl start docker
 停止: systemctl stop docker
 重启: systemctl restart docker
@@ -58,46 +194,11 @@ curl -fsSL https://get.docker.com | bash -s docker --mirror Aliyun
 开机启动: systemctl enable docker
 ```
 
-## 2.使用 yum 进行安装
-
-```
-CentOS 7
-```
-
-### 1: 安装必要的一些系统工具
-
-```shell
-sudo yum install -y yum-utils device-mapper-persistent-data lvm2
-```
-
-### 2: 添加软件源信息
-
-```shell
-sudo yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
-
-```
-
-### 3: 加入镜像源地址
-
-```shell
-sudo sed -i 's+download.docker.com+mirrors.aliyun.com/docker-ce+' /etc/yum.repos.d/docker-ce.repo
-```
-
-### 4: 更新并安装Docker-CE
-
-```shell
-sudo yum makecache fast
-sudo yum -y install docker-ce
-```
-
-### 5.开启Docker服务
-
-```shell
-sudo service docker start
-```
+***
 
 
-## 3修改配置文件
+
+## 2.修改配置文件
 
 磁盘
 
@@ -107,7 +208,7 @@ df -h
 
 ![image-20230315150120299](.\img\image-20230315150120299.png)
 
-###  3.1修改软连接
+###  1修改软连接
 
 docker存储路径
 
@@ -159,7 +260,7 @@ ll /var/lib/docker
 
 ![image-20230315150239718](.\img\image-20230315150239718.png)
 
-### 3.2   配置文件
+### 2   配置文件
 当前用户添加到docker组中
 
 ```
@@ -182,7 +283,7 @@ mv /var/lib/docker /home/lib
 vim /etc/docker/daemon.json
 ```
 
-配置内容
+### 3.配置内容(镜像)
 
 ```json
 {
@@ -215,11 +316,80 @@ vim /etc/docker/daemon.json
 sudo systemctl start docker
 ```
 
+```
+sudo systemctl restart docker
+```
+
+***
 
 
-## 4.镜像命令
 
-### 1.基础命令
+
+## 4.容器命令
+
+```
+启动交互式容器(前台命令行)
+
+查看运行的容器: docker ps 
+显示所有的容器，包括未运行的: docker ps -a
+    停止后无法查看,要查看需要运行的,可以用 docker images 查找容器id 也可以用 docker ps -n 2 最近使用的
+查看已经停止的: docker ps -n 2
+进入容器: docker exec -it 容器id /bin/bash
+
+退出
+容器关闭:   exit 
+容器不停止:  ctrl+p+q 
+
+启动已经停止的容器id: docker start 容器id
+重启容器: docker restart 容器id
+停止容器: docker stop 容器id
+强制停止容器: docker kill 容器id
+删除已停止容器: docker rm
+
+开机启动 docker update --restart=always  xx
+```
+
+### 2.容器复制文件到宿主机
+
+```
+docker cp 容器名:容器内路径 目的主机路径 
+```
+
+### 3.日志
+
+后台运行查询指定数量最新log
+
+```
+docker logs -f -t --tail=5 容器名
+```
+
+### 4.创建完成的容器修改启动参数
+
+```
+docker container update restart=always 容器名或id
+```
+
+### 5.查看容器启动参数
+
+```
+runlike 容器
+```
+
+### 6.容器导出导入
+
+```
+docker export b91d9ad83efa > tomcat80824.tar
+```
+
+```
+docker import tomcat80824.tar
+```
+
+***
+
+## 5.镜像命令
+
+### 1.docker命令
 
 ```
 查看概要: docker info
@@ -232,6 +402,7 @@ docker image inspect (docker image名称):latest|grep -i version
 导出镜像: docker save -o test.tar mysql:8.0.28
 导入镜像: docker load -i test.tar
 docker tag 标签
+cup 内存等信息 docker stats
 ```
 
 ### 2.无法删除镜像
@@ -285,76 +456,6 @@ Windows不识别
 ```
 docker load < Nginx.tar
 ```
-
-### 4.容器导出导入
-
-```
-docker export b91d9ad83efa > tomcat80824.tar
-```
-
-```
-docker import tomcat80824.tar
-```
-
-## 5.容器命令
-
-```
-启动交互式容器(前台命令行)
-
-查看运行的容器: docker ps 
-显示所有的容器，包括未运行的: docker ps -a
-    停止后无法查看,要查看需要运行的,可以用 docker images 查找容器id 也可以用 docker ps -n 2 最近使用的
-查看已经停止的: docker ps -n 2
-进入容器: docker exec -it 容器id /bin/bash
-
-退出
-容器关闭:   exit 
-容器不停止:  ctrl+p+q 
-
-启动已经停止的容器id: docker start 容器id
-重启容器: docker restart 容器id
-停止容器: docker stop 容器id
-强制停止容器: docker kill 容器id
-删除已停止容器: docker rm
-
-开机启动 docker update --restart=always  xx
-```
-
-### 1.容器cup 内存等信息
-
-```
-docker stats
-```
-
-![image-20221027155151408](.\img\.gitignore)
-
-### 2.复制文件
-
-```
-docker cp 容器名:容器内路径 目的主机路径 
-```
-
-### 3.日志
-
-后台运行查询指定数量最新log
-
-```
-docker logs -f -t --tail=5 容器名
-```
-
-### 4.创建完成的容器修改启动参数
-
-```
-docker container update restart=always 容器名或id
-```
-
-### 5.查看容器启动参数
-
-```
-runlike 容器
-```
-
-
 
 ## 6.制作镜像
 
@@ -513,7 +614,7 @@ docker network connect mynetwork my_container
 
 
 
-# 2.docker常用容器
+# 二、docker常用容器
 
 ## 本教程网关  (mynetwork)
 
@@ -579,6 +680,7 @@ docker run \
 -p 3306:3306 \
 -e MYSQL_ROOT_PASSWORD=123456 \
 --restart=always \
+--net=mynetwork \
 -v /home/mysql8/data:/var/lib/mysql \
 -v /home/mysql8/logs:/var/log/mysql \
 -v /home/mysql8/conf/my.cnf:/etc/mysql/my.cnf \
@@ -1043,13 +1145,34 @@ docker cp minio:/data D:\home\minio
 
 ## keycloak
 
-#### 命令
+### 命令
 
 ```
-docker run --name keycloak -d -p 7010:8080 -e KEYCLOAK_USER=admin -e KEYCLOAK_PASSWORD=admin jboss/keycloak:16.0.0
+docker run --name keycloak -d -p 16201:8080 -e KEYCLOAK_USER=admin -e KEYCLOAK_PASSWORD=admin keycloak/keycloak:25.0 start-dev
 ```
 
-禁用https
+```
+mkdir -p /home/keycloak/{data,logs,conf}
+```
+
+```
+docker cp keycloak:/opt/keycloak/conf/keycloak.conf /home/keycloak/conf/keycloak.conf
+```
+
+```
+docker run --name keycloak -d \
+-p 16201:8080 \
+-e KEYCLOAK_USER=admin \
+-e KEYCLOAK_PASSWORD=admin \
+--restart=always \
+--net=mynetwork \
+-v /opt/keycloak/conf/keycloak.conf:/home/keycloak/conf/keycloak.conf \
+keycloak/keycloak:25.0 start-dev
+```
+
+
+
+### 禁用https
 
 ```
 docker exec -it keycloak bash
@@ -1274,9 +1397,23 @@ docker run --name xxl-job-admin \
 -d xuxueli/xxl-job-admin:2.4.0
 ```
 
+## onlyoffice
+
+```
+docker pull onlyoffice/documentserver:8.1
+```
+
+```
+docker run -i -t -d -p 14080:80 onlyoffice/documentserver:8.1
+```
+
+```
+执行 GO TO TEST EXAMPLE 中docker命令，运行示例
+```
 
 
-# 3 docker compose
+
+# 三、 docker compose
 
 ## 1.示例,网关
 
@@ -1356,7 +1493,7 @@ networks:
 
 
 
-# 4.linux
+# 四、linux
 
 ## 1.文件
 
@@ -1623,7 +1760,7 @@ tar -xzvf example.tar.gz
 tar -xzvf example.tar.gz -C /path/to/target/directory
 ```
 
-# 5 .SQL
+# 五、SQL
 
 ## 1. 查询中，含有数据库没有的字段
 
@@ -1637,7 +1774,7 @@ SELECT id,0 max_age FROM `t_student`
 
 
 
-# 6.Java脚本
+# 六、Java脚本
 
 ## 1.Windows脚本
 
