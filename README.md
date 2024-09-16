@@ -568,15 +568,13 @@ server {
 
 ```
 
-## 7.networks
+## 7.网关networks
 
 ### 1.创建网络
 
 ```
 网络范围,和网关ip
 ```
-
-
 
 ```
 docker network create --subnet=172.19.0.0/16 --gateway=172.19.0.1  mynetwork
@@ -603,8 +601,6 @@ networks:
         - subnet: 172.18.0.0/16
 
 ```
-
-
 
 ### 3.现有容器加入网关
 
@@ -1095,11 +1091,23 @@ docker exec -it mongodb mongodump --username=cepai --password=123456 --out=/data
 docker exec -it mongodb mongorestore --username=admin --password=yourpassword /data/backup
 ```
 
+***
+
 
 
 ## minio
 
 ### Linux 命令
+
+```
+docker run -p 19000:9000 -p 19001:9001 --name minio \
+-d --restart=always \
+--privileged=true \
+-e TZ="Asia/Shanghai" \
+-e MINIO_ROOT_USER=admin \
+-e MINIO_ROOT_PASSWORD=admin123 \
+minio/minio:RELEASE.2022-04-12T06-55-35Z server /data --console-address ":9001"
+```
 
 ```
 mkdir -p /home/minio/{data,conf}
@@ -1139,7 +1147,7 @@ docker cp minio:/root/.minio D:\home\minio/conf
 docker cp minio:/data D:\home\minio
 ```
 
-
+***
 
 
 
