@@ -1,0 +1,19 @@
+version: "3.6"
+services:
+  kafka:
+    image: bitnami/kafka:3.5.2
+    environment:
+      - KAFKA_ENABLE_KRAFT=yes
+      - KAFKA_CFG_NODE_ID=1
+      - KAFKA_CFG_PROCESS_ROLES=broker,controller
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@hadoop102:9093,2@hadoop103:9093,3@hadoop104:9093
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://hadoop102:9092,CONTROLLER://hadoop102:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://hadoop102:9092
+      - KAFKA_CFG_LOG_DIRS=/bitnami/kafka/data
+      - KAFKA_CFG_METRIC_REPORTERS=io.confluent.metrics.reporter.ConfluentMetricsReporter
+      - KAFKA_CFG_CONFLUENT_SUPPORT_METRICS_ENABLE=false
+    volumes:
+      - /opt/kafka_data:/bitnami/kafka:rw
+    ports:
+      - '9092:9092'
+      - '9093:9093'

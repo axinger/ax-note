@@ -42,7 +42,7 @@ curl -sSL https://get.daocloud.io/docker | sh
 --privileged=true \ 容器内部拥有root权限
 ```
 
-### 2.阿里云镜像安装,也可以更新
+### 2.阿里云镜像安装
 
 下载新的yum源文件
 
@@ -225,7 +225,7 @@ systemctl stop docker
 移动docker目录
 
 ```
-mv /var/lib/docker /home/lib
+mv /var/lib/docker /opt/module/lib
 ```
 
 文件夹赋值给当前用户
@@ -241,14 +241,14 @@ docker network connect 网络名 容器名
 
 
 
-- /home/lib/docker，也就是新设置的docker存储目录
-- /var/lib/docker为软链接目标目录，与此目录建立链接后，相当于原来的docker配置保持不变，但真正的存储目录是其背后所指向的/home/docker
+- /opt/module/lib/docker，也就是新设置的docker存储目录
+- /var/lib/docker为软链接目标目录，与此目录建立链接后，相当于原来的docker配置保持不变，但真正的存储目录是其背后所指向的/opt/module/docker
 
 ```shell
-ln -s /home/lib/docker /var/lib/docker
+ln -s /opt/module/lib/docker /var/lib/docker
 ```
 
-查看/var/lib/目录，docker目录是一个软链接，指向/home/docker，配置正确
+查看/var/lib/目录，docker目录是一个软链接，指向/opt/module/docker，配置正确
 
 ```shell
 ls -al /var/lib
@@ -270,11 +270,11 @@ sudo usermod -aG docker $USER
 文件夹赋值给当前用户
 
 ```shell
-sudo chown $USER:$USER  /home/lib
+sudo chown $USER:$USER  /opt/module/lib
 ```
 
 ```shell
-mv /var/lib/docker /home/lib
+mv /var/lib/docker /opt/module/lib
 ```
 
 没有文件，就新建一个
@@ -294,7 +294,7 @@ vim /etc/docker/daemon.json
         }
     },
     "experimental": false,
-    "data-root": "/home/lib/docker",
+    "data-root": "/opt/module/docker",
     "registry-mirrors": [
         "https://c0tiwnf1.mirror.aliyuncs.com",
         "https://dockerproxy.com",
@@ -625,7 +625,7 @@ docker network connect mynetwork my_container
 ### 命令
 
 ```
-mkdir -p /home/portainer/data
+mkdir -p /opt/module/portainer/data
 ```
 
 ```
@@ -633,7 +633,7 @@ mkdir -p /home/portainer/data
 ```
 
 ```
-docker run -d  --name portainer -p 9000:9000 -v /var/run/docker.sock:/var/run/docker.sock -v /home/portainer/data:/data --restart always --privileged=true portainer/portainer-ce:latest
+docker run -d  --name portainer -p 9000:9000 -v /var/run/docker.sock:/var/run/docker.sock -v /opt/module/portainer/data:/data --restart always --privileged=true portainer/portainer-ce:latest
 ```
 
 ```
@@ -645,21 +645,23 @@ abcd1234567890
 
 ### 1.命令
 
+必须有时区，不然部分应用区分时区的，会链接不上
+
 ```
-mkdir -p /home/mysql8/{data,logs,conf}
+mkdir -p /opt/module/mysql8/{data,logs,conf}
 ```
 
 ```
 docker run \
 --name mysql8 -d \
--p 3308:3306 \
+-p 3306:3306 \
 -e MYSQL_ROOT_PASSWORD=123456 \
-mysql:8.0.31
+mysql:8.0.33
 ```
 
 ```
-docker cp mysql8:/etc/mysql/my.cnf /home/mysql8/conf/my.cnf
-docker cp mysql8:/etc/mysql/conf.d/ /home/mysql8/conf.d/
+docker cp mysql8:/etc/my.cnf /opt/module/mysql8/conf/my.cnf
+docker cp mysql8:/etc/conf.d /opt/module/mysql8/conf.d
 ```
 
 ```
@@ -677,17 +679,15 @@ docker run \
 -e MYSQL_ROOT_PASSWORD=123456 \
 --restart=always \
 --net=mynetwork \
--v /home/mysql8/data:/var/lib/mysql \
--v /home/mysql8/logs:/var/log/mysql \
--v /home/mysql8/conf/my.cnf:/etc/mysql/my.cnf \
--v /home/mysql8/conf/conf.d:/etc/mysql/conf.d \
-mysql:8.0.31
+-e TZ=Asia/Shanghai \
+-v /opt/module/mysql8/data:/var/lib/mysql \
+mysql:8.0.33
 ```
 
 ### 2.Windows安装
 
 ```
-docker run --name mysql8 -d -p 3306:3306 -e MYSQL_ROOT_PASSWORD=123456  --net=mynetwork --ip=172.19.0.5 -v D:\home\mysql\data:/var/lib/mysql mysql:8.0.31
+docker run --name mysql8 -d -p 3306:3306 -e MYSQL_ROOT_PASSWORD=123456  --net=mynetwork --ip=172.19.0.5 -v D:\home\mysql\data:/var/lib/mysql -v D:\home\mysql\logs:/var/log/mysq mysql:8.0.33
 ```
 
 
@@ -743,7 +743,7 @@ flush privileges;
 docker run --name demo-pgsql  -d \
 -e POSTGRES_PASSWORD=123456 \
 -p 5432:5432 \
--v /home/postgresql/data:/var/lib/postgresql/data \
+-v /opt/module/postgresql/data:/var/lib/postgresql/data \
 postgres:14.6-alpine
 ```
 
@@ -774,7 +774,7 @@ services:
     ports:
       - 1433:1433
     volumes:
-      - /home/mssql/data:/var/opt/mssql/data
+      - /opt/module/mssql/data:/var/opt/mssql/data
     #环境变量
     environment:
       - ACCEPT_EULA=Y
@@ -795,27 +795,27 @@ docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=Abcd!1234" -p 1433:1433 --na
 ### 1. 低版本(1.4.x)
 
 ```
-挂载的文是/home/nacos/init.d/custom.properties
+挂载的文是/opt/module/nacos/init.d/custom.properties
 ```
 
 ```
 docker pull nacos/nacos-server:1.4.0
 
-mkdir -p /home/nacos1/{init.d,conf}
+mkdir -p /opt/module/nacos1/{init.d,conf}
 
 docker run --name nacos -d \
 -e MODE=standalone \
 -p 8848:8848 \
 --restart=always \
--v /home/nacos/logs:/home/nacos/logs \
--v /home/nacos/init/custom.properties:/home/nacos/init.d/custom.properties \
+-v /opt/module/nacos/logs:/opt/module/nacos/logs \
+-v /opt/module/nacos/init/custom.properties:/opt/module/nacos/init.d/custom.properties \
 nacos/nacos-server:1.4.0
 ```
 
 ### 2. 1.4.2 及 2.0.3版本
 
 ```
-mkdir -p /home/nacos/{logs,conf}
+mkdir -p /opt/module/nacos/{logs,conf}
 ```
 
 ````
@@ -826,7 +826,7 @@ mkdir -p /home/nacos/{logs,conf}
 ````
 
 ```
-挂载的文件是/home/nacos/conf/application.properties
+挂载的文件是/opt/module/nacos/conf/application.properties
 ```
 
 ##### 复制配置文件
@@ -840,7 +840,7 @@ nacos/nacos-server:v2.0.4
 ```
 
 ```
-docker cp nacos:/home/nacos/conf/application.properties /home/nacos/conf/application.properties
+docker cp nacos:/opt/module/nacos/conf/application.properties /opt/module/nacos/conf/application.properties
 ```
 
 ```
@@ -859,8 +859,8 @@ docker  run \
 -e JVM_XMS=256m \
 -e JVM_XMX=256m \
 -e JVM_XMN=256m \
--v /home/nacos/logs:/home/nacos/logs \
--v /home/nacos/conf/application.properties:/home/nacos/conf/application.properties \
+-v /opt/module/nacos/logs:/opt/module/nacos/logs \
+-v /opt/module/nacos/conf/application.properties:/opt/module/nacos/conf/application.properties \
 nacos/nacos-server:v2.2.1
 ```
 
@@ -871,7 +871,7 @@ docker run --name nacos -d -p 8848:8848 -p 9848:9848 -e MODE=standalone  --net=m
 ```
 
 ```
-docker run --name nacos -d -p 8848:8848 -p 9848:9848 -e MODE=standalone --privileged=true --net=mynetwork --ip=172.19.0.10 -e JVM_XMS=256m -e JVM_XMX=256m -e JVM_XMN=256m -v D:\home\nacos\conf\application.properties:/home/nacos/conf/application.properties nacos/nacos-server:v2.3.2
+docker run --name nacos -d -p 8848:8848 -p 9848:9848 -e MODE=standalone --privileged=true --net=mynetwork --ip=172.19.0.10 -e JVM_XMS=256m -e JVM_XMX=256m -e JVM_XMN=256m -v D:\home\nacos\conf\application.properties:/opt/module/nacos/conf/application.properties nacos/nacos-server:v2.3.2
 ```
 
 ### 4.持久化SQL,注意版本
@@ -949,9 +949,9 @@ docker run --name seata -d \
 --privileged=true \
 --restart=always \
 -e SEATA_PORT=8091 \
--v /home/seata/resources/registry.conf:/seata-server/resources/registry.conf \
--v /home/seata/resources/file.conf:/seata-server/resources/file.conf \
--v /home/seata/logs:/root/logs \
+-v /opt/module/seata/resources/registry.conf:/seata-server/resources/registry.conf \
+-v /opt/module/seata/resources/file.conf:/seata-server/resources/file.conf \
+-v /opt/module/seata/logs:/root/logs \
 -e SEATA_IP=192.168.101.143 \
 seataio/seata-server:1.4.2
 ```
@@ -968,8 +968,8 @@ https://github.com/seata/seata/blob/develop/script/server/db/mysql.sql
 ### 1.建立挂载目录
 
 ```
-mkdir -p /home/redis/conf
-chmod -R 777 /home/redis
+mkdir -p /opt/module/redis/conf
+chmod -R 777 /opt/module/redis
 ```
 
 ```
@@ -989,8 +989,8 @@ docker run --name redis7 -d \
 -p 6379:6379 \
 --privileged=true \
 --restart=always \
--v /home/redis/redis.conf:/etc/redis/redis.conf \
--v /home/redis/data:/data \
+-v /opt/module/redis/redis.conf:/etc/redis/redis.conf \
+-v /opt/module/redis/data:/data \
 redis:7.0.4 redis-server /etc/redis/redis.conf
 ```
 
@@ -1007,12 +1007,12 @@ docker run --name redis7 -d -p 6379:6379 --net=mynetwork --ip=172.19.0.6 -v D:\h
 ### 建立挂载目录
 
 ```
-mkdir -p /home/nginx/{conf,conf.d,html,log}
+mkdir -p /opt/module/nginx/{conf,conf.d,html,log}
 
 docker run --name demo-nginx -p 8080:80 -d nginx:1.23
-docker cp demo-nginx:/etc/nginx/nginx.conf /home/nginx/conf/nginx.conf
+docker cp demo-nginx:/etc/nginx/nginx.conf /opt/module/nginx/conf/nginx.conf
 
-docker cp demo-nginx:/etc/nginx/conf.d/default.conf /home/nginx/conf.d/default.conf
+docker cp demo-nginx:/etc/nginx/conf.d/default.conf /opt/module/nginx/conf.d/default.conf
 ```
 
 ### 命令
@@ -1021,10 +1021,10 @@ docker cp demo-nginx:/etc/nginx/conf.d/default.conf /home/nginx/conf.d/default.c
 docker run --name demo-nginx -d \
 -p 3500:80 \
 --restart always
--v /home/nginx/html:/usr/share/nginx/html \
--v /home/nginx/conf/nginx.conf:/etc/nginx/nginx.conf \
--v /home/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf \
--v /home/nginx/log:/var/log/nginx \
+-v /opt/module/nginx/html:/usr/share/nginx/html \
+-v /opt/module/nginx/conf/nginx.conf:/etc/nginx/nginx.conf \
+-v /opt/module/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf \
+-v /opt/module/nginx/log:/var/log/nginx \
 nginx:1.23
 ```
 
@@ -1037,7 +1037,7 @@ nginx:1.23
 ### 文件夹
 
 ```
-mkdir -p /home/mongodb/{data,conf,backup}
+mkdir -p /opt/module/mongodb/{data,conf,backup}
 ```
 
 ### mongodb.conf
@@ -1063,9 +1063,9 @@ docker run --name mongodb -d \
 -e TZ=Asia/Shanghai \
 -e MONGO_INITDB_ROOT_USERNAME=admin \
 -e MONGO_INITDB_ROOT_PASSWORD=admin123 \
--v /home/mongodb/data:/data/db \
--v /home/mongodb/backup:/data/backup \
--v /home/mongodb/conf:/data/configdb \
+-v /opt/module/mongodb/data:/data/db \
+-v /opt/module/mongodb/backup:/data/backup \
+-v /opt/module/mongodb/conf:/data/configdb \
 mongo:4.4.13-focal
 ```
 
@@ -1110,15 +1110,15 @@ minio/minio:RELEASE.2022-04-12T06-55-35Z server /data --console-address ":9001"
 ```
 
 ```
-mkdir -p /home/minio/{data,conf}
+mkdir -p /opt/module/minio/{data,conf}
 ```
 
 ```
-docker cp minio:/root/.minio /home/conf 
+docker cp minio:/root/.minio /opt/module/conf 
 ```
 
 ```
-docker cp minio:/data /home/data 
+docker cp minio:/data /opt/module/data 
 ```
 
 ```
@@ -1128,8 +1128,8 @@ docker run -p 19000:9000 -p 19001:9001 --name minio \
 -e TZ="Asia/Shanghai" \
 -e MINIO_ROOT_USER=admin \
 -e MINIO_ROOT_PASSWORD=admin123 \
--v /home/minio/data:/data \
--v /home/minio/conf:/root/.minio \
+-v /opt/module/minio/data:/data \
+-v /opt/module/minio/conf:/root/.minio \
 minio/minio:RELEASE.2022-04-12T06-55-35Z server /data --console-address ":9001"
 ```
 
@@ -1160,11 +1160,11 @@ docker run --name keycloak -d -p 16201:8080 -e KEYCLOAK_USER=admin -e KEYCLOAK_P
 ```
 
 ```
-mkdir -p /home/keycloak/{data,logs,conf}
+mkdir -p /opt/module/keycloak/{data,logs,conf}
 ```
 
 ```
-docker cp keycloak:/opt/keycloak/conf/keycloak.conf /home/keycloak/conf/keycloak.conf
+docker cp keycloak:/opt/keycloak/conf/keycloak.conf /opt/module/keycloak/conf/keycloak.conf
 ```
 
 ```
@@ -1174,7 +1174,7 @@ docker run --name keycloak -d \
 -e KEYCLOAK_PASSWORD=admin \
 --restart=always \
 --net=mynetwork \
--v /opt/keycloak/conf/keycloak.conf:/home/keycloak/conf/keycloak.conf \
+-v /opt/keycloak/conf/keycloak.conf:/opt/module/keycloak/conf/keycloak.conf \
 keycloak/keycloak:25.0 start-dev
 ```
 
@@ -1207,9 +1207,9 @@ docker run --name rabbitmq -d \
 --privileged=true \
 --restart=always \
 -d -p 5672:5672 -p 15672:15672 \
--v /home/rabbitmq/data:/var/lib/rabbitmq \
--v /home/rabbitmq/conf:/etc/rabbitmq \
--v /home/rabbitmq/log:/var/log/rabbitmq \
+-v /opt/module/rabbitmq/data:/var/lib/rabbitmq \
+-v /opt/module/rabbitmq/conf:/etc/rabbitmq \
+-v /opt/module/rabbitmq/log:/var/log/rabbitmq \
 --hostname=rabbitmqhost \
 -e RABBITMQ_DEFAULT_VHOST=my_vhost \
 -e RABBITMQ_DEFAULT_USER=admin \
@@ -1341,7 +1341,7 @@ networks:
 复制lib
 
 ```
-docker cp flink_taskmanager:/opt/flink/lib ./lib
+docker cp flink_taskmanager:/opt/flink/lib ./
 ```
 
 授权777
@@ -1762,11 +1762,27 @@ ln -s /opt/module/jdk/bin/jps jps
 tar -xzvf example.tar.gz
 ```
 
-## 2.指定目录
+### 2.指定目录
 
 ```
 tar -xzvf example.tar.gz -C /path/to/target/directory
 ```
+
+
+
+## 5 修改网络
+
+root 用户下输入此命令
+
+````
+vim /etc/sysconfig/network-scripts/ifcfg-ens33
+````
+
+````
+service network restart
+````
+
+
 
 # 五、SQL
 
@@ -1852,7 +1868,7 @@ SELECT id,0 max_age FROM `t_student`
  startTime=`date +'%Y-%m-%d %H:%M:%S'`
  
  #jar包文件路径
- APP_PATH=/home/demo
+ APP_PATH=/opt/module/demo
  
  #jar包文件名称
  APP_NAME=$APP_PATH/spring-boot-demo.jar

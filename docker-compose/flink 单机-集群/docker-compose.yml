@@ -1,0 +1,27 @@
+version: "3"
+services:
+  jobmanager:
+    image: flink:1.18.1
+    expose:
+      - "6123"
+    ports:
+      - "8081:8081"
+    command: jobmanager
+    volumes:
+      - /opt/module/flink/lib:/opt/flink/lib
+    environment:
+      - JOB_MANAGER_RPC_ADDRESS=jobmanager
+  taskmanager:
+    image: flink:1.18.1
+    expose:
+      - "6121"
+      - "6122"
+    depends_on:
+      - jobmanager
+    command: taskmanager
+    volumes:
+      - /opt/module/flink/lib:/opt/flink/lib
+    links:
+      - "jobmanager:jobmanager"
+    environment:
+      - JOB_MANAGER_RPC_ADDRESS=jobmanager
