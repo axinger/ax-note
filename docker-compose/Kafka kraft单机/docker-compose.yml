@@ -32,14 +32,18 @@
 #    #   netkafka:
 #    #     ipv4_address: 172.23.0.11
 
-
 version: "3.6"
 services:
   kafka:
     container_name: kafka1
     image: 'bitnami/kafka:3.8.0'
+    restart: always
     ports:
       - "9092:9092"
+    extra_hosts:        
+      - "hadoop102:192.168.10.102"
+      - "hadoop103:192.168.10.103"
+      - "hadoop104:192.168.10.104"
     volumes:
       - "./data:/bitnami/data"
     environment:
@@ -53,7 +57,7 @@ services:
 #      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://host.docker.internal:9092
       # 外部访问url,根据实际情况修改,不能使用虚拟hosts
       #===================================重点===================================
-      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://192.168.10.102:9092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://hadoop102:9092
       #=========================================================================
       - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
       - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER

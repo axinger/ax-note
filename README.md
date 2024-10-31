@@ -32,7 +32,7 @@ groups
 
 
 
-### 1.国内安装docker
+### 1.**国内**安装docker
 ```shell
 curl -sSL https://get.daocloud.io/docker | sh
 ```
@@ -50,13 +50,13 @@ curl -sSL https://get.daocloud.io/docker | sh
 wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
 ```
 
-清除yum缓存
+**清除**yum缓存
 
 ```
 yum clean all
 ```
 
-更新yum缓存
+**更新**yum缓存
 
 ```
 yum makecache
@@ -270,11 +270,11 @@ sudo usermod -aG docker $USER
 文件夹赋值给当前用户
 
 ```shell
-sudo chown $USER:$USER  /opt/module/lib
+sudo chown $USER:$USER  /opt/lib
 ```
 
 ```shell
-mv /var/lib/docker /opt/module/lib
+mv /var/lib/docker /opt/lib
 ```
 
 没有文件，就新建一个
@@ -294,7 +294,7 @@ vim /etc/docker/daemon.json
         }
     },
     "experimental": false,
-    "data-root": "/opt/module/docker",
+    "data-root": "/opt/lib/docker",
     "registry-mirrors": [
         "https://c0tiwnf1.mirror.aliyuncs.com",
         "https://dockerproxy.com",
@@ -625,6 +625,12 @@ docker network connect mynetwork my_container
 ### 命令
 
 ```
+docker pull portainer/portainer-ce:2.21.3
+```
+
+
+
+```
 mkdir -p /opt/module/portainer/data
 ```
 
@@ -633,7 +639,7 @@ mkdir -p /opt/module/portainer/data
 ```
 
 ```
-docker run -d  --name portainer -p 9000:9000 -v /var/run/docker.sock:/var/run/docker.sock -v /opt/module/portainer/data:/data --restart always --privileged=true portainer/portainer-ce:latest
+docker run -d  --name portainer -p 9000:9000 -v /var/run/docker.sock:/var/run/docker.sock -v /opt/module/portainer/data:/data --restart always --privileged=true portainer/portainer-ce:2.21.3
 ```
 
 ```
@@ -1106,7 +1112,7 @@ docker run -p 19000:9000 -p 19001:9001 --name minio \
 -e TZ="Asia/Shanghai" \
 -e MINIO_ROOT_USER=admin \
 -e MINIO_ROOT_PASSWORD=admin123 \
-minio/minio:RELEASE.2022-04-12T06-55-35Z server /data --console-address ":9001"
+minio/minio:RELEASE.2024-10-02T17-50-41Z server /data --console-address ":9001"
 ```
 
 ```
@@ -1114,23 +1120,23 @@ mkdir -p /opt/module/minio/{data,conf}
 ```
 
 ```
-docker cp minio:/root/.minio /opt/module/conf 
+docker cp minio:/root/.minio /opt/module/minio/conf 
 ```
 
 ```
-docker cp minio:/data /opt/module/data 
+docker cp minio:/data /opt/module/minio/data 
 ```
 
 ```
 docker run -p 19000:9000 -p 19001:9001 --name minio \
 -d --restart=always \
 --privileged=true \
+--net=mynetwork \
 -e TZ="Asia/Shanghai" \
 -e MINIO_ROOT_USER=admin \
 -e MINIO_ROOT_PASSWORD=admin123 \
 -v /opt/module/minio/data:/data \
--v /opt/module/minio/conf:/root/.minio \
-minio/minio:RELEASE.2022-04-12T06-55-35Z server /data --console-address ":9001"
+minio/minio:RELEASE.2024-10-02T17-50-41Z server /data --console-address ":9001"
 ```
 
 ### Windows命令
@@ -1396,13 +1402,14 @@ docker cp /root/mydata/superset/config.py superset:/app/superset/config.py
 
 ```
 docker run --name xxl-job-admin \
--e PARAMS="--spring.datasource.url=jdbc:mysql://192.168.101.132:3308/xxl_job?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=Asia/Shanghai" \
--e "spring.datasource.username=root" \ 
--e "spring.datasource.password=123456" \
--e "xxl.job.accessToken=abcd1234" \
--p 18080:8080 \ 
+-e PARAMS="--spring.datasource.url=jdbc:mysql://mysql8:3306/xxl_job?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=Asia/Shanghai \
+--spring.datasource.username=root  \ 
+--spring.datasource.password=123456  \
+--xxl.job.accessToken=abcd1234" \
+--p 18080:8080 \
+--net=mynetwork \
 --restart=always \
--d xuxueli/xxl-job-admin:2.4.0
+-d xuxueli/xxl-job-admin:2.4.1
 ```
 
 ## onlyoffice
@@ -1417,6 +1424,23 @@ docker run -i -t -d -p 14080:80 onlyoffice/documentserver:8.1
 
 ```
 执行 GO TO TEST EXAMPLE 中docker命令，运行示例
+```
+
+## maxwell
+
+```
+利用cdc技术同步mysql数据到Kafka，Kinesis、RabbitMQ、Redis、Google Cloud Pub/Sub组件
+```
+
+```
+bin/maxwell --user='maxwell' --password='XXXXXX' --host='127.0.0.1' \
+   --producer=kafka --kafka.bootstrap.servers=localhost:9092 --kafka_topic=maxwell
+```
+
+```
+docker run -it --rm zendesk/maxwell bin/maxwell --user=$MYSQL_USERNAME \
+    --password=$MYSQL_PASSWORD --host=$MYSQL_HOST --producer=kafka \
+    --kafka.bootstrap.servers=$KAFKA_HOST:$KAFKA_PORT --kafka_topic=maxwell
 ```
 
 
@@ -1793,7 +1817,89 @@ SELECT id,0 max_age FROM `t_student`
 ```
 
 ```
-0 max_age,  默认值 + 字段名
+0 max_age,  格式： 默认值  字段名
+```
+
+# 2、MySQL8
+
+### 1、窗口函数
+
+```sql
+CREATE TABLE students (
+    id INT PRIMARY KEY,
+    name VARCHAR(50),
+    score DECIMAL(5, 2)
+);
+```
+
+```
+1、RANK() 会为分数相同的学生赋予相同的排名，并且如果有两个学生排名相同，下一名的排名会跳过
+```
+
+```sql
+SELECT 
+    id,
+    name,
+    score,
+    RANK() OVER (ORDER BY score DESC) AS ranking
+FROM students;
+```
+
+```
+2、使用 ROW_NUMBER() 窗口函数
+
+ROW_NUMBER() 不会跳过排名，即使分数相同，每个学生都会有一个唯一的排名
+（没有并列排名）
+```
+
+```sql
+SELECT 
+    id,
+    name,
+    score,
+    ROW_NUMBER() OVER (ORDER BY score DESC) AS ranking
+FROM students;
+```
+
+```
+3、使用 DENSE_RANK() 窗口函数
+
+DENSE_RANK() 与 RANK() 类似，但不会跳过排名。如果有两个学生排名相同，下一名的排名紧接其后，不会跳过。
+（并列排名，且按顺序，符合日常习惯）
+```
+
+```sql
+SELECT 
+    id,
+    name,
+    score,
+    DENSE_RANK() OVER (ORDER BY score DESC) AS ranking
+FROM students;
+```
+
+### 2、WITH
+
+```
+WITH 语句用于定义公用表表达式（Common Table Expression，简称 CTE），这是一种临时结果集，可以在查询中多次引用，简化复杂查询并提高可读性。
+```
+
+```
+在这个示例中，我们使用了 WITH 来创建一个名为 ranked_students 的临时表，计算了学生的分数排名。然后，我们可以从这个临时表中查询排名前 3 的学生。
+有并列第二名，查询出4人，符合日常习惯
+```
+
+```sql
+WITH ranked_students AS (
+    SELECT 
+        id,
+        name,
+        score,
+        DENSE_RANK() OVER (ORDER BY score DESC) AS ranking
+    FROM students
+)
+SELECT *
+FROM ranked_students
+WHERE ranking <= 3;
 ```
 
 

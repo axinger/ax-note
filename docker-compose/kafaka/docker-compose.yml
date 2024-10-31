@@ -26,12 +26,12 @@ services:
     environment:
       - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
       - ALLOW_PLAINTEXT_LISTENER=yes
-      KAFKA_CFG_ADVERTISED_LISTENERS: "PLAINTEXT://192.168.101.143:9092" #本机ip,不然无法链接
+      - KAFKA_CFG_ADVERTISED_LISTENERS="PLAINTEXT://192.168.101.143:9092" #本机ip,不然无法链接
     depends_on:
       - zookeeper
 
-volumes:
-  zookeeper_data:
-    driver: local
-  kafka_data:
-    driver: local
+#volumes:
+#  zookeeper_data:
+#    driver: local
+#  kafka_data:
+#    driver: local
