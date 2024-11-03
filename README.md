@@ -870,6 +870,22 @@ docker  run \
 nacos/nacos-server:v2.2.1
 ```
 
+```
+docker run -d \
+--restart=always \
+--name nacos \
+-e MODE=standalone \
+-e JVM_XMS=256m \
+-e JVM_XMX=256m \
+-e JVM_XMN=256m \
+-p 8848:8848 \
+-p 9848:9848 \
+-v /usr/local/docker/nacos/config/application.properties:/home/nacos/conf/application.properties \
+nacos/nacos-server:v2.4.3
+```
+
+
+
 ### 3.Windows安装
 
 ```
