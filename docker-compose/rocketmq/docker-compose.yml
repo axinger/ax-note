@@ -35,9 +35,8 @@ services:
       rmq:
         aliases:
           - rmqbroker
-
   rmqconsole:
-    image: apacherocketmq/rocketmq-dashboard:1.0.0
+    image: apacherocketmq/rocketmq-dashboard:latest
     container_name: rmqconsole
     ports:
       - 8180:8080
