@@ -801,6 +801,16 @@ docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=Abcd!1234" -p 1433:1433 --na
 ### 1. 低版本(1.4.x)
 
 ```
+docker run --name nacos -d \
+-e MODE=standalone \
+-p 8848:8848 \
+--restart=always \
+nacos/nacos-server:1.4.2
+```
+
+
+
+```
 挂载的文是/opt/module/nacos/init.d/custom.properties
 ```
 
@@ -842,7 +852,10 @@ docker  run \
 --name nacos -d \
 -p 8848:8848 \
 -p 9848:9848 \
-nacos/nacos-server:v2.0.4
+-e JVM_XMS=128m \
+-e JVM_XMX=128m \
+-e JVM_XMN=64m \
+nacos/nacos-server:v2.2.0
 ```
 
 ```
@@ -889,11 +902,11 @@ nacos/nacos-server:v2.4.3
 ### 3.Windows安装
 
 ```
-docker run --name nacos -d -p 8848:8848 -p 9848:9848 -e MODE=standalone  --net=mynetwork --ip=172.19.0.10 -e JVM_XMS=256m -e JVM_XMX=256m -e JVM_XMN=256m nacos/nacos-server:v2.3.2
+docker run --name nacos -d -p 8848:8848 -p 9848:9848 -e MODE=standalone  --net=mynetwork --ip=172.19.0.10 -e JVM_XMS=256m -e JVM_XMX=256m -e JVM_XMN=256m nacos/nacos-server:v2.2.0
 ```
 
 ```
-docker run --name nacos -d -p 8848:8848 -p 9848:9848 -e MODE=standalone --privileged=true --net=mynetwork --ip=172.19.0.10 -e JVM_XMS=256m -e JVM_XMX=256m -e JVM_XMN=256m -v D:\home\nacos\conf\application.properties:/opt/module/nacos/conf/application.properties nacos/nacos-server:v2.3.2
+docker run --name nacos -d -p 8848:8848 -p 9848:9848 -e MODE=standalone --privileged=true --net=mynetwork --ip=172.19.0.10 -e JVM_XMS=256m -e JVM_XMX=256m -e JVM_XMN=256m -v D:\home\nacos\conf\application.properties:/opt/module/nacos/conf/application.properties nacos/nacos-server:v2.2.0
 ```
 
 ### 4.持久化SQL,注意版本
