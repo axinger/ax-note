@@ -3,16 +3,19 @@ services:
   nacos:
     image: nacos/nacos-server:v2.3.2
     container_name: nacos
+    restart: always
     environment:
-      - MODE=cluster # 或者 standalone 如果是单机模式
+      - MODE=standalone # 或者 standalone 如果是单机模式
       - SPRING_DATASOURCE_PLATFORM=mysql
       - MYSQL_SERVICE_HOST=mysql8 # 替换为你的MySQL主机地址
       - MYSQL_SERVICE_PORT=3306 # MySQL端口，默认是3306
       - MYSQL_SERVICE_DB_NAME=nacos # 替换为你想要使用的数据库名称
       - MYSQL_SERVICE_USER=root # 替换为你的MySQL用户名
       - MYSQL_SERVICE_PASSWORD=123456 # 替换为你的MySQL密码
+      - JAVA_OPTS=-Xms256m -Xmx256m -Xmn256m
     ports:
-      - "8848:8848" # Nacos默认端口
+      - "8848:8848"
+      - "9848:9848"
     networks:
       mynetwork:
         #ipv4_address: 172.19.0.12

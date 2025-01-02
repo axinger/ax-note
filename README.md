@@ -883,7 +883,7 @@ docker  run \
 nacos/nacos-server:v2.2.1
 ```
 
-```
+```dockerfile
 docker run -d \
 --restart=always \
 --name nacos \
@@ -901,12 +901,8 @@ nacos/nacos-server:v2.4.3
 
 ### 3.Windows安装
 
-```
-docker run --name nacos -d -p 8848:8848 -p 9848:9848 -e MODE=standalone  --net=mynetwork --ip=172.19.0.10 -e JVM_XMS=256m -e JVM_XMX=256m -e JVM_XMN=256m nacos/nacos-server:v2.2.0
-```
-
-```
-docker run --name nacos -d -p 8848:8848 -p 9848:9848 -e MODE=standalone --privileged=true --net=mynetwork --ip=172.19.0.10 -e JVM_XMS=256m -e JVM_XMX=256m -e JVM_XMN=256m -v D:\home\nacos\conf\application.properties:/opt/module/nacos/conf/application.properties nacos/nacos-server:v2.2.0
+```dockerfile
+使用docker compose
 ```
 
 ### 4.持久化SQL,注意版本
