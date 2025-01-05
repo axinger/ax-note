@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  elasticsearch:
+    image: elastic/elasticsearch:7.17.15
+    container_name: elasticsearch
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: false
+      ES_JAVA_OPTS: "-Xms64m -Xmx128m"
+      TZ: Asia/Shanghai # 设置时区
+    volumes:
+      - ./elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+      - ./elasticsearch/data:/usr/share/elasticsearch/data
+      - ./elasticsearch/plugins:/usr/share/elasticsearch/plugins
+    ports:
+      - "9200:9200"
+    networks:
+      - efk
+
+  kibana:
+    image: elastic/kibana:7.17.15
+    container_name: kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - "TZ=Asia/Shanghai"  # 设置时区
+    volumes:
+      - /etc/localtime:/etc/localtime:ro # 挂载宿主机的 localtime 到容器
+      - ./kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+    networks:
+      - efk
+
+  filebeat:
+    image: elastic/filebeat:7.17.15
+    container_name: filebeat
+    user: "1000:0"
+    environment:
+      - "TZ=Asia/Shanghai"  # 设置时区
+    volumes:
+      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml
+      - ./filebeat/logs:/usr/share/filebeat/logs
+    depends_on:
+      - elasticsearch
+    networks:
+      - efk
+
+networks:
+  efk:

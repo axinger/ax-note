@@ -295,18 +295,7 @@ vim /etc/docker/daemon.json
     },
     "experimental": false,
     "data-root": "/opt/lib/docker",
-    "registry-mirrors": [
-        "https://c0tiwnf1.mirror.aliyuncs.com",
-        "https://dockerproxy.com",
-        "https://mirror.iscas.ac.cn",
-        "https://docker.m.daocloud.io",
-        "https://mirror.baidubce.com",
-        "http://mirror.azure.cn/",
-        "http://hub-mirror.c.163.com",
-        "http://mirrors.ustc.edu.cn/",
-        "https://docker.nju.edu.cn/",
-        "https://docker.mirrors.tuna.tsinghua.edu.cn"
-    ]
+   "registry-mirrors":[ "https://docker.1ms.run", "https://doublezonline.cloud", "https://dislabaiot.xyz", "https://docker.fxxk.dedyn.io", "https://dockerpull.org", "https://docker.unsee.tech", "https://hub.rat.dev", "https://docker.1panel.live", "https://docker.nastool.de", "https://docker.zhai.cm", "https://docker.5z5f.com", "https://a.ussh.net", "https://docker.udayun.com", "https://hub.geekery.cn" ]
 }
 ```
 
@@ -322,72 +311,7 @@ sudo systemctl restart docker
 
 ***
 
-
-
-
-## 4.容器命令
-
-```
-启动交互式容器(前台命令行)
-
-查看运行的容器: docker ps 
-显示所有的容器，包括未运行的: docker ps -a
-    停止后无法查看,要查看需要运行的,可以用 docker images 查找容器id 也可以用 docker ps -n 2 最近使用的
-查看已经停止的: docker ps -n 2
-进入容器: docker exec -it 容器id /bin/bash
-
-退出
-容器关闭:   exit 
-容器不停止:  ctrl+p+q 
-
-启动已经停止的容器id: docker start 容器id
-重启容器: docker restart 容器id
-停止容器: docker stop 容器id
-强制停止容器: docker kill 容器id
-删除已停止容器: docker rm
-
-开机启动 docker update --restart=always  xx
-```
-
-### 2.容器复制文件到宿主机
-
-```
-docker cp 容器名:容器内路径 目的主机路径 
-```
-
-### 3.日志
-
-后台运行查询指定数量最新log
-
-```
-docker logs -f -t --tail=5 容器名
-```
-
-### 4.创建完成的容器修改启动参数
-
-```
-docker container update restart=always 容器名或id
-```
-
-### 5.查看容器启动参数
-
-```
-runlike 容器
-```
-
-### 6.容器导出导入
-
-```
-docker export b91d9ad83efa > tomcat80824.tar
-```
-
-```
-docker import tomcat80824.tar
-```
-
-***
-
-## 5.镜像命令
+## 4.镜像命令
 
 ### 1.docker命令
 
@@ -456,6 +380,73 @@ Windows不识别
 ```
 docker load < Nginx.tar
 ```
+
+---
+
+
+
+
+## 5.容器命令
+
+```
+启动交互式容器(前台命令行)
+
+查看运行的容器: docker ps 
+显示所有的容器，包括未运行的: docker ps -a
+    停止后无法查看,要查看需要运行的,可以用 docker images 查找容器id 也可以用 docker ps -n 2 最近使用的
+查看已经停止的: docker ps -n 2
+进入容器: docker exec -it 容器id /bin/bash
+
+退出
+容器关闭:   exit 
+容器不停止:  ctrl+p+q 
+
+启动已经停止的容器id: docker start 容器id
+重启容器: docker restart 容器id
+停止容器: docker stop 容器id
+强制停止容器: docker kill 容器id
+删除已停止容器: docker rm
+
+开机启动 docker update --restart=always  xx
+```
+
+### 2.容器复制文件到宿主机
+
+```
+docker cp 容器名:容器内路径 目的主机路径 
+```
+
+### 3.日志
+
+后台运行查询指定数量最新log
+
+```
+docker logs -f -t --tail=5 容器名
+```
+
+### 4.创建完成的容器修改启动参数
+
+```
+docker container update restart=always 容器名或id
+```
+
+### 5.查看容器启动参数
+
+```
+runlike 容器
+```
+
+### 6.容器导出导入
+
+```
+docker export b91d9ad83efa > tomcat80824.tar
+```
+
+```
+docker import tomcat80824.tar
+```
+
+***
 
 ## 6.制作镜像
 

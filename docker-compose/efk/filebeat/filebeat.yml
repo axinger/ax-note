@@ -1,0 +1,60 @@
+filebeat.inputs:
+  - type: log
+    paths:
+      - /usr/share/filebeat/logs/app1/*.log  # 读取 app1 的日志
+    enabled: true
+    # fields:
+    #   app_name: "app1"  # 自定义字段，标识应用名称
+    #   log_type: "myapp"
+    fields_under_root: true
+    processors:
+      - dissect:
+          tokenizer: "%{timestamp} %{+millisecond} [%{thread}] %{loglevel} %{class} %{line_number} - %{message}"
+          field: "loglevel"
+          field: "message"
+          target_prefix: ""  # 可以指定目标字段前缀
+      - add_fields:
+          target: ''
+          fields:
+            app_name: "app1"
+            log_type: "myapp"
+
+    #独自的index
+    # setup.template.enabled: true
+    # setup.template.name: "myapp-logs-app1"
+    # setup.template.pattern: "myapp-logs-app1-*"
+
+  - type: log
+    paths:
+      - /usr/share/filebeat/logs/app2/*.log  # 读取 app2 的日志
+    enabled: true
+    fields:
+      app_name: "app2"
+      log_type: "myapp"
+    fields_under_root: true
+
+        #独自的index
+    # setup.template.enabled: true
+    # setup.template.name: "myapp-logs-app2"
+    # setup.template.pattern: "myapp-logs-app2-*"
+
+
+# 启用 ILM
+setup.ilm.enabled: true
+setup.ilm.rollover_alias: "myapp-logs"
+setup.ilm.policy_name: "myapp-policy"
+
+# 启用通用模板加载,即index
+setup.template.enabled: true
+setup.template.name: "myapp-logs"
+setup.template.pattern: "myapp-logs-*"
+
+# Elasticsearch 输出设置
+output.elasticsearch:
+  hosts: ["elasticsearch:9200"]
+  index: "myapp-logs-%{[app_name]}-%{+yyyy.MM.dd}"  # 按应用和日期生成索引
+
+
+
+setup.kibana:
+  host: "kibana:5601"
