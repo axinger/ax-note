@@ -225,7 +225,7 @@ systemctl stop docker
 移动docker目录
 
 ```
-mv /var/lib/docker /opt/module/lib
+mv /var/lib/docker /opt/mydata/lib
 ```
 
 文件夹赋值给当前用户
@@ -241,14 +241,14 @@ docker network connect 网络名 容器名
 
 
 
-- /opt/module/lib/docker，也就是新设置的docker存储目录
-- /var/lib/docker为软链接目标目录，与此目录建立链接后，相当于原来的docker配置保持不变，但真正的存储目录是其背后所指向的/opt/module/docker
+- /opt/mydata/lib/docker，也就是新设置的docker存储目录
+- /var/lib/docker为软链接目标目录，与此目录建立链接后，相当于原来的docker配置保持不变，但真正的存储目录是其背后所指向的/opt/mydata/docker
 
 ```shell
-ln -s /opt/module/lib/docker /var/lib/docker
+ln -s /opt/mydata/lib/docker /var/lib/docker
 ```
 
-查看/var/lib/目录，docker目录是一个软链接，指向/opt/module/docker，配置正确
+查看/var/lib/目录，docker目录是一个软链接，指向/opt/mydata/docker，配置正确
 
 ```shell
 ls -al /var/lib
@@ -564,6 +564,25 @@ server {
 ### 1.创建网络
 
 ```
+私有网络3个波段
+可以选择的网段范围： 根据 RFC 1918，私有 IP 网段包括：
+
+10.0.0.0/8：支持大量地址，适用于大型网络。
+172.16.0.0/12：适合中型网络。
+192.168.0.0/16：适合小型网络或家庭网络。
+```
+
+```
+10.0.0.0/8 ,子网掩码：8 表示前 8 位固定（255.0.0.0） ,总地址数：16,777,216
+```
+
+```
+10.0.1.0/24,子网掩码：24 表示前 24 位固定（255.255.255.0）,总地址数：256
+```
+
+
+
+```
 网络范围,和网关ip
 ```
 
@@ -622,7 +641,7 @@ docker pull portainer/portainer-ce:2.21.3
 
 
 ```
-mkdir -p /opt/module/portainer/data
+mkdir -p /opt/mydata/portainer/data
 ```
 
 ```
@@ -630,7 +649,7 @@ mkdir -p /opt/module/portainer/data
 ```
 
 ```
-docker run -d  --name portainer -p 9000:9000 -v /var/run/docker.sock:/var/run/docker.sock -v /opt/module/portainer/data:/data --restart always --privileged=true portainer/portainer-ce:2.21.3
+docker run -d  --name portainer -p 9000:9000 -v /var/run/docker.sock:/var/run/docker.sock -v /opt/mydata/portainer/data:/data --restart always --privileged=true portainer/portainer-ce:2.21.3
 ```
 
 ```
@@ -645,7 +664,13 @@ abcd1234567890
 必须有时区，不然部分应用区分时区的，会链接不上
 
 ```
-mkdir -p /opt/module/mysql8/{data,logs,conf}
+mkdir -p /opt/mydata/mysql8/{data,logs,conf}
+```
+
+## 复制配置文件,一行命令
+
+```
+docker run --rm mysql:8.0.33 cat /etc/my.cnf > /opt/mydata/mysql8/conf/my.cnf
 ```
 
 ```
@@ -657,8 +682,8 @@ mysql:8.0.33
 ```
 
 ```
-docker cp mysql8:/etc/my.cnf /opt/module/mysql8/conf/my.cnf
-docker cp mysql8:/etc/conf.d /opt/module/mysql8/conf.d
+docker cp mysql8:/etc/my.cnf /opt/mydata/mysql8/conf/my.cnf
+docker cp mysql8:/etc/conf.d /opt/mydata/mysql8/conf.d
 ```
 
 ```
@@ -677,7 +702,7 @@ docker run \
 --restart=always \
 --net=mynetwork \
 -e TZ=Asia/Shanghai \
--v /opt/module/mysql8/data:/var/lib/mysql \
+-v /opt/mydata/mysql8/data:/var/lib/mysql \
 mysql:8.0.33
 ```
 
@@ -740,7 +765,7 @@ flush privileges;
 docker run --name demo-pgsql  -d \
 -e POSTGRES_PASSWORD=123456 \
 -p 5432:5432 \
--v /opt/module/postgresql/data:/var/lib/postgresql/data \
+-v /opt/mydata/postgresql/data:/var/lib/postgresql/data \
 postgres:14.6-alpine
 ```
 
@@ -771,7 +796,7 @@ services:
     ports:
       - 1433:1433
     volumes:
-      - /opt/module/mssql/data:/var/opt/mssql/data
+      - /opt/mydata/mssql/data:/var/opt/mssql/data
     #环境变量
     environment:
       - ACCEPT_EULA=Y
@@ -802,27 +827,27 @@ nacos/nacos-server:1.4.2
 
 
 ```
-挂载的文是/opt/module/nacos/init.d/custom.properties
+挂载的文是/opt/mydata/nacos/init.d/custom.properties
 ```
 
 ```
 docker pull nacos/nacos-server:1.4.0
 
-mkdir -p /opt/module/nacos1/{init.d,conf}
+mkdir -p /opt/mydata/nacos1/{init.d,conf}
 
 docker run --name nacos -d \
 -e MODE=standalone \
 -p 8848:8848 \
 --restart=always \
--v /opt/module/nacos/logs:/opt/module/nacos/logs \
--v /opt/module/nacos/init/custom.properties:/opt/module/nacos/init.d/custom.properties \
+-v /opt/mydata/nacos/logs:/opt/mydata/nacos/logs \
+-v /opt/mydata/nacos/init/custom.properties:/opt/mydata/nacos/init.d/custom.properties \
 nacos/nacos-server:1.4.0
 ```
 
 ### 2. 1.4.2 及 2.0.3版本
 
 ```
-mkdir -p /opt/module/nacos/{logs,conf}
+mkdir -p /opt/mydata/nacos/{logs,conf}
 ```
 
 ````
@@ -833,7 +858,7 @@ mkdir -p /opt/module/nacos/{logs,conf}
 ````
 
 ```
-挂载的文件是/opt/module/nacos/conf/application.properties
+挂载的文件是/opt/mydata/nacos/conf/application.properties
 ```
 
 ##### 复制配置文件
@@ -850,7 +875,7 @@ nacos/nacos-server:v2.2.0
 ```
 
 ```
-docker cp nacos:/opt/module/nacos/conf/application.properties /opt/module/nacos/conf/application.properties
+docker cp nacos:/opt/mydata/nacos/conf/application.properties /opt/mydata/nacos/conf/application.properties
 ```
 
 ```
@@ -869,8 +894,8 @@ docker  run \
 -e JVM_XMS=256m \
 -e JVM_XMX=256m \
 -e JVM_XMN=256m \
--v /opt/module/nacos/logs:/opt/module/nacos/logs \
--v /opt/module/nacos/conf/application.properties:/opt/module/nacos/conf/application.properties \
+-v /opt/mydata/nacos/logs:/opt/mydata/nacos/logs \
+-v /opt/mydata/nacos/conf/application.properties:/opt/mydata/nacos/conf/application.properties \
 nacos/nacos-server:v2.2.1
 ```
 
@@ -902,7 +927,7 @@ nacos/nacos-server:v2.4.3
 https://github.com/alibaba/nacos/blob/2.0.4/distribution/conf/nacos-mysql.sql
 ```
 ```
-https://github.com/alibaba/nacos/blob/2.3.2/distribution/conf/mysql-schema.sql
+https://github.com/alibaba/nacos/blob/2.2.0/distribution/conf/mysql-schema.sql
 ```
 
 
@@ -971,9 +996,9 @@ docker run --name seata -d \
 --privileged=true \
 --restart=always \
 -e SEATA_PORT=8091 \
--v /opt/module/seata/resources/registry.conf:/seata-server/resources/registry.conf \
--v /opt/module/seata/resources/file.conf:/seata-server/resources/file.conf \
--v /opt/module/seata/logs:/root/logs \
+-v /opt/mydata/seata/resources/registry.conf:/seata-server/resources/registry.conf \
+-v /opt/mydata/seata/resources/file.conf:/seata-server/resources/file.conf \
+-v /opt/mydata/seata/logs:/root/logs \
 -e SEATA_IP=192.168.101.143 \
 seataio/seata-server:1.4.2
 ```
@@ -990,8 +1015,8 @@ https://github.com/seata/seata/blob/develop/script/server/db/mysql.sql
 ### 1.建立挂载目录
 
 ```
-mkdir -p /opt/module/redis/conf
-chmod -R 777 /opt/module/redis
+mkdir -p /opt/mydata/redis/conf
+chmod -R 777 /opt/mydata/redis
 ```
 
 ```
@@ -1011,8 +1036,8 @@ docker run --name redis7 -d \
 -p 6379:6379 \
 --privileged=true \
 --restart=always \
--v /opt/module/redis/redis.conf:/etc/redis/redis.conf \
--v /opt/module/redis/data:/data \
+-v /opt/mydata/redis/redis.conf:/etc/redis/redis.conf \
+-v /opt/mydata/redis/data:/data \
 redis:7.0.4 redis-server /etc/redis/redis.conf
 ```
 
@@ -1029,12 +1054,12 @@ docker run --name redis7 -d -p 6379:6379 --net=mynetwork --ip=172.19.0.6 -v D:\h
 ### 建立挂载目录
 
 ```
-mkdir -p /opt/module/nginx/{conf,conf.d,html,log}
+mkdir -p /opt/mydata/nginx/{conf,conf.d,html,log}
 
 docker run --name demo-nginx -p 8080:80 -d nginx:1.23
-docker cp demo-nginx:/etc/nginx/nginx.conf /opt/module/nginx/conf/nginx.conf
+docker cp demo-nginx:/etc/nginx/nginx.conf /opt/mydata/nginx/conf/nginx.conf
 
-docker cp demo-nginx:/etc/nginx/conf.d/default.conf /opt/module/nginx/conf.d/default.conf
+docker cp demo-nginx:/etc/nginx/conf.d/default.conf /opt/mydata/nginx/conf.d/default.conf
 ```
 
 ### 命令
@@ -1043,10 +1068,10 @@ docker cp demo-nginx:/etc/nginx/conf.d/default.conf /opt/module/nginx/conf.d/def
 docker run --name demo-nginx -d \
 -p 3500:80 \
 --restart always
--v /opt/module/nginx/html:/usr/share/nginx/html \
--v /opt/module/nginx/conf/nginx.conf:/etc/nginx/nginx.conf \
--v /opt/module/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf \
--v /opt/module/nginx/log:/var/log/nginx \
+-v /opt/mydata/nginx/html:/usr/share/nginx/html \
+-v /opt/mydata/nginx/conf/nginx.conf:/etc/nginx/nginx.conf \
+-v /opt/mydata/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf \
+-v /opt/mydata/nginx/log:/var/log/nginx \
 nginx:1.23
 ```
 
@@ -1059,7 +1084,7 @@ nginx:1.23
 ### 文件夹
 
 ```
-mkdir -p /opt/module/mongodb/{data,conf,backup}
+mkdir -p /opt/mydata/mongodb/{data,conf,backup}
 ```
 
 ### mongodb.conf
@@ -1085,9 +1110,9 @@ docker run --name mongodb -d \
 -e TZ=Asia/Shanghai \
 -e MONGO_INITDB_ROOT_USERNAME=admin \
 -e MONGO_INITDB_ROOT_PASSWORD=admin123 \
--v /opt/module/mongodb/data:/data/db \
--v /opt/module/mongodb/backup:/data/backup \
--v /opt/module/mongodb/conf:/data/configdb \
+-v /opt/mydata/mongodb/data:/data/db \
+-v /opt/mydata/mongodb/backup:/data/backup \
+-v /opt/mydata/mongodb/conf:/data/configdb \
 mongo:4.4.13-focal
 ```
 
@@ -1132,15 +1157,15 @@ minio/minio:RELEASE.2024-10-02T17-50-41Z server /data --console-address ":9001"
 ```
 
 ```
-mkdir -p /opt/module/minio/{data,conf}
+mkdir -p /opt/mydata/minio/{data,conf}
 ```
 
 ```
-docker cp minio:/root/.minio /opt/module/minio/conf 
+docker cp minio:/root/.minio /opt/mydata/minio/conf 
 ```
 
 ```
-docker cp minio:/data /opt/module/minio/data 
+docker cp minio:/data /opt/mydata/minio/data 
 ```
 
 ```
@@ -1151,7 +1176,7 @@ docker run -p 19000:9000 -p 19001:9001 --name minio \
 -e TZ="Asia/Shanghai" \
 -e MINIO_ROOT_USER=admin \
 -e MINIO_ROOT_PASSWORD=admin123 \
--v /opt/module/minio/data:/data \
+-v /opt/mydata/minio/data:/data \
 minio/minio:RELEASE.2024-10-02T17-50-41Z server /data --console-address ":9001"
 ```
 
@@ -1182,11 +1207,11 @@ docker run --name keycloak -d -p 16201:8080 -e KEYCLOAK_USER=admin -e KEYCLOAK_P
 ```
 
 ```
-mkdir -p /opt/module/keycloak/{data,logs,conf}
+mkdir -p /opt/mydata/keycloak/{data,logs,conf}
 ```
 
 ```
-docker cp keycloak:/opt/keycloak/conf/keycloak.conf /opt/module/keycloak/conf/keycloak.conf
+docker cp keycloak:/opt/keycloak/conf/keycloak.conf /opt/mydata/keycloak/conf/keycloak.conf
 ```
 
 ```
@@ -1196,7 +1221,7 @@ docker run --name keycloak -d \
 -e KEYCLOAK_PASSWORD=admin \
 --restart=always \
 --net=mynetwork \
--v /opt/keycloak/conf/keycloak.conf:/opt/module/keycloak/conf/keycloak.conf \
+-v /opt/keycloak/conf/keycloak.conf:/opt/mydata/keycloak/conf/keycloak.conf \
 keycloak/keycloak:25.0 start-dev
 ```
 
@@ -1229,9 +1254,9 @@ docker run --name rabbitmq -d \
 --privileged=true \
 --restart=always \
 -d -p 5672:5672 -p 15672:15672 \
--v /opt/module/rabbitmq/data:/var/lib/rabbitmq \
--v /opt/module/rabbitmq/conf:/etc/rabbitmq \
--v /opt/module/rabbitmq/log:/var/log/rabbitmq \
+-v /opt/mydata/rabbitmq/data:/var/lib/rabbitmq \
+-v /opt/mydata/rabbitmq/conf:/etc/rabbitmq \
+-v /opt/mydata/rabbitmq/log:/var/log/rabbitmq \
 --hostname=rabbitmqhost \
 -e RABBITMQ_DEFAULT_VHOST=my_vhost \
 -e RABBITMQ_DEFAULT_USER=admin \
@@ -1777,7 +1802,7 @@ free -h
 ### xcall jps
 
 ```
-ln -s /opt/module/jdk/bin/jps jps
+ln -s /opt/mydata/jdk/bin/jps jps
 ```
 
 ## 4  解压
@@ -1990,7 +2015,7 @@ WHERE ranking <= 3;
  startTime=`date +'%Y-%m-%d %H:%M:%S'`
  
  #jar包文件路径
- APP_PATH=/opt/module/demo
+ APP_PATH=/opt/mydata/demo
  
  #jar包文件名称
  APP_NAME=$APP_PATH/spring-boot-demo.jar
