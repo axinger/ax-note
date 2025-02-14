@@ -587,7 +587,7 @@ server {
 ```
 
 ```
-docker network create --subnet=172.19.0.0/16 --gateway=172.19.0.1  mynetwork
+docker network create --subnet=172.18.0.0/16  mynetwork
 ```
 
 ### 2.容器固定ip
@@ -709,7 +709,7 @@ mysql:8.0.33
 ### 2.Windows安装
 
 ```
-docker run --name mysql8 -d -p 3306:3306 -e MYSQL_ROOT_PASSWORD=123456  --net=mynetwork --ip=172.19.0.5 -v D:\home\mysql\data:/var/lib/mysql -v D:\home\mysql\logs:/var/log/mysq mysql:8.0.33
+docker run --name mysql8 -d -p 3306:3306 -e MYSQL_ROOT_PASSWORD=123456  --net=mynetwork -v D:\opt\mydata\mysql8\data:/var/lib/mysql mysql:8.0.33
 ```
 
 
@@ -1318,6 +1318,15 @@ bin/pulsar standalone
 ```
 
 ```
+docker run -it -d -p 6650:6650 -p 18080:8080 \
+  --name=mypulsar \
+  -e PULSAR_MEM="-Xms512m -Xmx1024m" \
+  apachepulsar/pulsar:4.0.2 bin/pulsar standalone
+```
+
+
+
+```
 docker run -d -it --name=pulsar-manager \
 -p 17081:9527 -p 7750:7750 \
 -e SPRING_CONFIGURATION_FILE=/pulsar-manager/pulsar-manager/application.properties \
@@ -1837,7 +1846,7 @@ tar -xzvf example.tar.gz -C /path/to/target/directory
 
 ## 5 修改网络
 
-root 用户下输入此命令
+### 1.centos root 用户下输入此命令
 
 ````
 vim /etc/sysconfig/network-scripts/ifcfg-ens33
@@ -1846,6 +1855,12 @@ vim /etc/sysconfig/network-scripts/ifcfg-ens33
 ````
 service network restart
 ````
+
+### 2.Rocky9修改ip
+
+```
+vim /etc/NetworkManager/system-connections/ens192.nmconnection
+```
 
 
 

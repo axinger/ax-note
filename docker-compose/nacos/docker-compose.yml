@@ -1,23 +1,23 @@
-version: '3'
+version: '3.8'
 services:
-  nacos:
+  my-nacos:
     # 对应 springboot 2.6.13
     #  Spring Cloud 2021.0.5
     # Spring Cloud Alibaba 2021.0.5.0*
     image: nacos/nacos-server:v2.2.0
-    container_name: nacos
-    #    restart: always
+    container_name: my-nacos
     # restart: always
     environment:
-      - MODE=standalone # 或者 standalone 如果是单机模式
+      - MODE=standalone
       - SPRING_DATASOURCE_PLATFORM=mysql
-#      - MYSQL_SERVICE_HOST=mysql8 # 替换为你的MySQL主机地址
-      - MYSQL_SERVICE_HOST=hadoop102 # 替换为你的MySQL主机地址
-      - MYSQL_SERVICE_PORT=3306 # MySQL端口，默认是3306
-      - MYSQL_SERVICE_DB_NAME=nacos # 替换为你想要使用的数据库名称
-      - MYSQL_SERVICE_USER=root # 替换为你的MySQL用户名
-      - MYSQL_SERVICE_PASSWORD=123456 # 替换为你的MySQL密码
-      - JAVA_OPTS=-Xms128m -Xmx128m -Xmn128m
+      - MYSQL_SERVICE_HOST=mysql8
+      - MYSQL_SERVICE_PORT=3306
+      - MYSQL_SERVICE_DB_NAME=nacos
+      - MYSQL_SERVICE_USER=root
+      - MYSQL_SERVICE_PASSWORD=123456
+      - JVM_XMS=512m
+      - JVM_XMX=512m
+      - JVM_XMN=256m
     volumes:
       - /etc/hosts:/etc/hosts # 挂载hosts
     ports:
@@ -26,7 +26,22 @@ services:
     networks:
       mynetwork:
       #ipv4_address: 172.19.0.12
+    depends_on:
+      - mysql8
 
+  mysql8:
+    image: mysql:8.0.33
+    container_name: mysql8
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      TZ: Asia/Shanghai
+    ports:
+      - "3306:3306"
+    volumes:
+      - /opt/mydata/mysql8/data:/var/lib/mysql
+    networks:
+      mynetwork:
 networks:
   mynetwork:
     external: true
