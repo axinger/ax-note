@@ -295,9 +295,47 @@ vim /etc/docker/daemon.json
     },
     "experimental": false,
     "data-root": "/opt/lib/docker",
-   "registry-mirrors":[ "https://docker.1ms.run", "https://doublezonline.cloud", "https://dislabaiot.xyz", "https://docker.fxxk.dedyn.io", "https://dockerpull.org", "https://docker.unsee.tech", "https://hub.rat.dev", "https://docker.1panel.live", "https://docker.nastool.de", "https://docker.zhai.cm", "https://docker.5z5f.com", "https://a.ussh.net", "https://docker.udayun.com", "https://hub.geekery.cn" ]
+    "registry-mirrors": [
+        "https://docker.1ms.run",
+        "https://doublezonline.cloud",
+        "https://dislabaiot.xyz",
+        "https://docker.fxxk.dedyn.io",
+        "https://dockerpull.org",
+        "https://docker.unsee.tech",
+        "https://hub.rat.dev",
+        "https://docker.1panel.live",
+        "https://docker.nastool.de",
+        "https://docker.zhai.cm",
+        "https://docker.5z5f.com",
+        "https://a.ussh.net",
+        "https://docker.udayun.com",
+        "https://hub.geekery.cn"
+    ]
 }
 ```
+
+```json
+{
+    "builder": {
+        "gc": {
+            "defaultKeepStorage": "20GB",
+            "enabled": true
+        }
+    },
+    "experimental": false,
+    "registry-mirrors": [
+        "https://hub.rat.dev",
+        "https://docker.nju.edu.cn",
+        "http://hub-mirror.c.163.com",
+        "https://docker.mirrors.ustc.edu.cn",
+        "https://docker.1panel.live",
+        "https://docker.m.daocloud.io",
+        "https://registry.docker-cn.com"
+    ]
+}
+```
+
+
 
 启动docker服务
 
@@ -1067,7 +1105,7 @@ docker cp demo-nginx:/etc/nginx/conf.d/default.conf /opt/mydata/nginx/conf.d/def
 ```
 docker run --name demo-nginx -d \
 -p 3500:80 \
---restart always
+--restart always\
 -v /opt/mydata/nginx/html:/usr/share/nginx/html \
 -v /opt/mydata/nginx/conf/nginx.conf:/etc/nginx/nginx.conf \
 -v /opt/mydata/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf \

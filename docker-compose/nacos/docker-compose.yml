@@ -10,7 +10,7 @@ services:
     environment:
       - MODE=standalone
       - SPRING_DATASOURCE_PLATFORM=mysql
-      - MYSQL_SERVICE_HOST=mysql8
+      - MYSQL_SERVICE_HOST=hadoop102
       - MYSQL_SERVICE_PORT=3306
       - MYSQL_SERVICE_DB_NAME=nacos
       - MYSQL_SERVICE_USER=root
@@ -26,22 +26,22 @@ services:
     networks:
       mynetwork:
       #ipv4_address: 172.19.0.12
-    depends_on:
-      - mysql8
+#    depends_on:
+#      - mysql8
 
-  mysql8:
-    image: mysql:8.0.33
-    container_name: mysql8
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: 123456
-      TZ: Asia/Shanghai
-    ports:
-      - "3306:3306"
-    volumes:
-      - /opt/mydata/mysql8/data:/var/lib/mysql
-    networks:
-      mynetwork:
+#  mysql8:
+#    image: mysql:8.0.33
+#    container_name: mysql8
+#    restart: always
+#    environment:
+#      MYSQL_ROOT_PASSWORD: 123456
+#      TZ: Asia/Shanghai
+#    ports:
+#      - "3306:3306"
+#    volumes:
+#      - /opt/mydata/mysql8/data:/var/lib/mysql
+#    networks:
+#      mynetwork:
 networks:
   mynetwork:
     external: true
