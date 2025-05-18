@@ -1,0 +1,55 @@
+version: '3.8'
+services:
+  prometheus:
+    image: prom/prometheus:v2.53.4
+    container_name: prometheus
+    volumes:
+      - /root/mydata/prometheus/data:/etc/prometheus
+      - /root/mydata/prometheus/config/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      mynetwork:
+
+  grafana:
+    image: grafana/grafana:9.5.21
+    container_name: grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    ports:
+      - "3000:3000"
+    volumes:
+      - /root/mydata/grafana/data:/var/lib/grafana
+    networks:
+      mynetwork:
+    depends_on:
+      - prometheus
+
+  mysqld-exporter:
+    image: prom/mysqld-exporter:v0.17.2
+    container_name: mysqld-exporter
+    volumes:
+      - /root/mydata/mysqld_exporter/my.cnf:/.my.cnf
+    ports:
+      - "9104:9104"
+    networks:
+      - mynetwork
+    depends_on:
+      - prometheus
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.72.0
+    container_name: redis-exporter
+    restart: unless-stopped
+    environment:
+      - REDIS_ADDR=redis://192.168.101.135:6379  # 替换为您的Redis地址
+      - REDIS_PASSWORD=123456       # 如果Redis有密码
+    ports:
+      - "9121:9121"
+    networks:
+      - mynetwork
+    depends_on:
+      - prometheus
+networks:
+  mynetwork:
+    external: true
+

@@ -330,6 +330,12 @@ vim /etc/docker/daemon.json
         "https://docker.mirrors.ustc.edu.cn",
         "https://docker.1panel.live",
         "https://docker.m.daocloud.io",
+        "https://registry.docker-cn.com",
+        "https://docker.nju.edu.cn",
+        "http://hub-mirror.c.163.com",
+        "https://docker.mirrors.ustc.edu.cn",
+        "https://docker.1panel.live",
+        "https://docker.m.daocloud.io",
         "https://registry.docker-cn.com"
     ]
 }
@@ -695,6 +701,41 @@ admin
 abcd1234567890
 ```
 
+## 外挂一个jar
+
+不能使用通配符
+
+```
+docker run -d -p 13010:8080 --name demo1 -v /opt/app/demo1/app.jar:/app.jar eclipse-temurin:17-jre-jammy java -jar app.jar 
+```
+
+```
+#!/bin/bash
+
+# 定义 JAR 文件目录
+JAR_DIR="/opt/app/demo1"
+
+# 按版本号或时间排序，选择最新文件
+LATEST_JAR=$(ls -t "$JAR_DIR"/demo-*.jar | head -n1)
+
+# 创建符号链接
+ln -sf "$LATEST_JAR" "$JAR_DIR/latest.jar"
+
+# 验证链接
+ls -l "$JAR_DIR/latest.jar"
+```
+
+```
+# 验证链接
+ls -l "$JAR_DIR/latest.jar"
+# 挂载符号链接
+docker run -d -p 13010:8080 --name demo1 \
+  -v /opt/app/demo1/latest.jar:/app.jar \
+  eclipse-temurin:17-jre-jammy java -jar app.jar
+```
+
+
+
 ## mysql
 
 ### 1.命令
@@ -716,7 +757,7 @@ docker run \
 --name mysql8 -d \
 -p 3306:3306 \
 -e MYSQL_ROOT_PASSWORD=123456 \
-mysql:8.0.33
+mysql:8.0.
 ```
 
 ```
@@ -733,11 +774,17 @@ docker rm mysql8
 ```
 
 ```
+--restart=always 
+```
+
+
+
+```
 docker run \
 --name mysql8 -d \
 -p 3306:3306 \
 -e MYSQL_ROOT_PASSWORD=123456 \
---restart=always \
+--restart=unless-stopped \
 --net=mynetwork \
 -e TZ=Asia/Shanghai \
 -v /opt/mydata/mysql8/data:/var/lib/mysql \
@@ -1489,15 +1536,21 @@ docker cp /root/mydata/superset/config.py superset:/app/superset/config.py
 ## xxl-job
 
 ```
-docker run --name xxl-job-admin \
+https://gitee.com/xuxueli0323/xxl-job/blob/master/doc/db/tables_xxl_job.sql
+```
+
+
+
+```
+docker run --name xxl-job-admin -d \
+-p 18080:8080 \
 -e PARAMS="--spring.datasource.url=jdbc:mysql://mysql8:3306/xxl_job?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&serverTimezone=Asia/Shanghai \
---spring.datasource.username=root  \ 
---spring.datasource.password=123456  \
+--spring.datasource.username=root \ 
+--spring.datasource.password=123456 \
 --xxl.job.accessToken=abcd1234" \
---p 18080:8080 \
 --net=mynetwork \
 --restart=always \
--d xuxueli/xxl-job-admin:2.4.1
+xuxueli/xxl-job-admin:2.4.1
 ```
 
 ## onlyoffice
@@ -1529,6 +1582,374 @@ bin/maxwell --user='maxwell' --password='XXXXXX' --host='127.0.0.1' \
 docker run -it --rm zendesk/maxwell bin/maxwell --user=$MYSQL_USERNAME \
     --password=$MYSQL_PASSWORD --host=$MYSQL_HOST --producer=kafka \
     --kafka.bootstrap.servers=$KAFKA_HOST:$KAFKA_PORT --kafka_topic=maxwell
+```
+
+## jenkins
+
+### 命令
+
+```shell
+docker run -d \
+--user root \
+--publish 15030:8080 --publish 15031:50000 \
+--name jenkins \
+--restart always \
+--volume /root/mydata/jenkins:/var/jenkins_home \
+-e TZ="Asia/Shanghai" \
+jenkins/jenkins:alpine-jdk17
+```
+
+### 查看初始化密码
+
+```
+docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
+```
+
+```
+/var/jenkins_home  所有的插件和数据位置
+```
+
+### 插件
+
+```
+maven
+Publish Over SSHVersion
+```
+
+### 拉取git代码进行编译
+
+![image-20250330021558514](img/image-20250330021558514.png)
+
+### mvn命令,跳过测试
+
+```
+clean package -Dmaven.test.skip=true
+```
+
+![image-20250330133747020](img/image-20250330133747020.png)
+
+### ssh复制文件
+
+![image-20250330022555374](img/image-20250330022555374.png)
+
+![image-20250330174838855](img/image-20250330174838855.png)
+
+###  cron 表示式区别
+
+普通   30 12 * * *
+
+
+
+```
+H(1-30) 2 * * 1-6 周一到周六,每天2点 1-30分,执行一次
+```
+
+```
+H(1-30) 2-5 * * 1-6 2点到5点,周一到周六 每小时一次
+```
+
+
+
+H开头,hash散列,避免并发
+
+```
+* * * *  *  每分钟
+```
+
+
+
+![image-20250330124625663](img/image-20250330124625663.png)
+
+### 定时触发 (后面的截图错误了,不是轮训SCM)
+
+
+
+```
+轮训SCM 是定时检查代码变更
+定时构建 直接构建,不检查代码
+```
+
+
+
+```
+H * * *  * 间隔一小时的固定分钟,分钟hash出来的,
+```
+
+![image-20250330160122848](img/image-20250330160122848.png)
+
+```
+
+H(20-30) * * * *   起始时间不是固定的0,间隔一小时, H(20-30) 表示hash分钟
+```
+
+![image-20250330130042687](img/image-20250330130042687.png)
+
+```
+H/15 * * * * 起始时间不是固定的0,但间隔15分钟
+```
+
+![image-20250330125448331](img/image-20250330125448331.png)
+
+```
+H(10-30) 1 * * *  每天1点
+```
+
+![image-20250330134714642](img/image-20250330134714642.png)
+
+### java -jar 启动项目
+
+```bash
+#!/bin/bash
+
+# 定义常量
+JAR_PATH="/opt/app/demo1/demo1.jar"
+LOG_FILE="/opt/app/demo1/demo1.log"
+
+# 终止旧进程（精准匹配）
+echo "正在终止旧进程..."
+pkill -f "java.*${JAR_PATH}" || true
+sleep 5
+
+# 强制清理残留进程
+PID=$(ps -ef | grep "[j]ava.*${JAR_PATH}" | awk '{print $2}')
+if [ -n "$PID" ]; then
+  echo "强制终止残留进程: $PID"
+  kill -9 $PID
+  sleep 2
+fi
+
+# 启动新进程
+echo "正在启动新服务..."
+nohup java -jar "$JAR_PATH" > "$LOG_FILE" 2>&1 &
+
+# 验证启动状态（可选）
+sleep 3
+if pgrep -f "java.*${JAR_PATH}" >/dev/null; then
+  echo "启动成功！进程 PID: $(pgrep -f "java.*${JAR_PATH}")"
+else
+  echo "启动失败，请检查日志：$LOG_FILE"
+  exit 1
+fi
+```
+
+```bash
+#!/bin/bash
+# 定义常量
+JAR_PATH="/opt/app/demo1/demo1.jar"
+LOG_FILE="/opt/app/demo1/demo1.log"
+PID_FILE="/opt/app/demo1/demo1.pid"
+
+# 获取pid
+pid=`ps -ef | grep $JAR_PATH | grep 'java -jar' | awk '{printf $2}'`
+echo "正在终止旧进程pid=$pid"
+kill -9 $pid
+
+IF [ -Z pid];
+
+
+
+
+
+# 启动新进程
+echo "正在启动新服务..."
+nohup java -jar "$JAR_PATH" > "$LOG_FILE" 2>&1 &
+
+
+```
+
+
+
+### 流水线语法
+
+使用片段生成器
+
+```
+134gitlab 新增用户,指定ID就会得到
+```
+
+![image-20250331221022036](img/image-20250331221022036.png)
+
+![image-20250331221931019](img/image-20250331221931019.png)
+
+![image-20250330220459476](img/image-20250330220459476.png)
+
+```shell
+
+pipeline {
+    agent any
+
+    tools{
+    	maven "maven-3.9.9"
+    }
+    stages {
+        stage('拉取代码') {
+            steps {
+            	git credentialsId: '134gitlab', url: 'http://192.168.101.134:15021/root/demo1.git'
+                echo '拉取代码成功'
+            }
+        }
+        stage('构建代码') {
+            steps {
+            	// sh "mvn --version"
+            	// 需要查看是否pom.xml当前路径,不是就cd一下
+            	sh """
+            	mvn --version
+            	echo '多行命令1'
+                echo '多行命令2'
+                mvn clean package -Dmaven.test.skip=true
+            	"""
+                echo '构建成功'
+            }
+        }
+         stage('发送jar') {
+            steps {
+            sshPublisher(publishers: [sshPublisherDesc(configName: '143@SSH', transfers: [sshTransfer(cleanRemote: false, excludes: '', execCommand: '''#!/bin/bash
+
+# 定义常量
+JAR_PATH="/opt/app/demo1/demo1.jar"
+LOG_FILE="/opt/app/demo1/demo1.log"
+
+# 终止旧进程（精准匹配）
+echo "正在终止旧进程..."
+pkill -f "java.*${JAR_PATH}" || true
+sleep 5
+
+# 强制清理残留进程
+PID=$(ps -ef | grep "[j]ava.*${JAR_PATH}" | awk \'{print $2}\')
+if [ -n "$PID" ]; then
+  echo "强制终止残留进程: $PID"
+  kill -9 $PID
+  sleep 2
+fi
+
+# 启动新进程
+echo "正在启动新服务..."
+nohup java -jar "$JAR_PATH" > "$LOG_FILE" 2>&1 &
+
+# 验证启动状态（可选）
+sleep 3
+if pgrep -f "java.*${JAR_PATH}" >/dev/null; then
+  echo "启动成功！进程 PID: $(pgrep -f "java.*${JAR_PATH}")"
+else
+  echo "启动失败，请检查日志：$LOG_FILE"
+  exit 1
+fi''', execTimeout: 120000, flatten: false, makeEmptyDirs: false, noDefaultExcludes: false, patternSeparator: '[, ]+', remoteDirectory: '/app/demo1', remoteDirectorySDF: false, removePrefix: 'target', sourceFiles: 'target/*.jar')], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: false)])
+                echo '发送jar成功'
+            }
+        }
+    }
+}
+```
+
+```
+pipeline {
+    agent any
+
+    tools{
+    	maven "maven-3.9.9"
+    }
+    stages {
+        stage('拉取代码') {
+            steps {
+            	git credentialsId: '134gitlab', url: 'http://192.168.101.134:15021/root/demo1.git'
+                echo '拉取代码成功'
+            }
+        }
+        stage('构建代码') {
+            steps {
+            	// sh "mvn --version"
+            	// 需要查看是否pom.xml当前路径,不是就cd一下
+            	sh """
+            	mvn --version
+            	echo '多行命令1'
+                echo '多行命令2'
+                mvn clean package -Dmaven.test.skip=true
+            	"""
+                echo '构建成功'
+            }
+        }
+         stage('发送jar') {
+            steps {
+           sshPublisher(publishers: [sshPublisherDesc(configName: '131@SSH', transfers: [sshTransfer(cleanRemote: false, excludes: '', execCommand: 'docker restart demo1', execTimeout: 120000, flatten: false, makeEmptyDirs: false, noDefaultExcludes: false, patternSeparator: '[, ]+', remoteDirectory: '/app/demo1', remoteDirectorySDF: false, removePrefix: 'target', sourceFiles: 'target/*.jar')], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: false)])
+                echo '发送jar成功'
+            }
+        }
+    }
+}
+```
+
+
+
+```
+pipeline {
+    agent any
+
+    tools{
+    	maven "maven-3.9.9"
+    }
+    stages {
+        stage('拉取代码') {
+            steps {
+            	git credentialsId: '134gitlab', url: 'http://192.168.101.134:15021/root/demo1.git'
+                echo '拉取代码成功'
+            }
+        }
+        stage('构建代码') {
+            steps {
+            	sh """
+                mvn clean package -Dmaven.test.skip=true
+            	"""
+                echo '构建代码成功'
+            }
+        }
+         stage('发送文件') {
+            steps {
+           sshPublisher(publishers: [sshPublisherDesc(configName: '134@SSH', transfers: [sshTransfer(cleanRemote: false, excludes: '', execCommand: '', execTimeout: 120000, flatten: false, makeEmptyDirs: false, noDefaultExcludes: false, patternSeparator: '[, ]+', remoteDirectory: '/app/demo1', remoteDirectorySDF: false, removePrefix: 'target', sourceFiles: 'target/*.jar'), sshTransfer(cleanRemote: false, excludes: '', execCommand: '', execTimeout: 120000, flatten: false, makeEmptyDirs: false, noDefaultExcludes: false, patternSeparator: '[, ]+', remoteDirectory: '/app/demo1', remoteDirectorySDF: false, removePrefix: 'shell', sourceFiles: 'shell/start.sh')], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: false)])
+                echo '发送文件成功'
+            }
+        }
+          stage('启动服务') {
+            steps {
+            	sshPublisher(publishers: [sshPublisherDesc(configName: '134@SSH', transfers: [sshTransfer(cleanRemote: false, excludes: '', execCommand: 'sh start.sh', execTimeout: 120000, flatten: false, makeEmptyDirs: false, noDefaultExcludes: false, patternSeparator: '[, ]+', remoteDirectory: '/app/demo1', remoteDirectorySDF: false, removePrefix: '', sourceFiles: '')], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: false)])
+                echo '启动服务成功'
+            }
+        }
+    }
+}   
+```
+
+
+
+### blue ocean  可视化
+
+
+
+## gitlab
+
+```shell
+docker run -d \
+--hostname 192.168.101.134 \
+--publish 15023:443 --publish 15021:80 --publish 15022:22 \
+--name gitlab \
+--restart always \
+-v /root/mydata/gitlab/config:/etc/gitlab \
+-v /root/mydata/gitlab/logs:/var/log/gitlab \
+-v /root/mydata/gitlab/data:/var/opt/gitlab \
+gitlab/gitlab-ce:17.9.2-ce.0
+```
+
+修改 /etc/gitlab/gitlab.rb
+
+```tex
+#加入如下
+#gitlab克隆http端口
+external_url 'http://hadoop104:15021'
+# gitlab访问端口
+nginx['listen_port'] = 8180
+#ssh主机ip
+gitlab_rails['gitlab_ssh_host'] = 'hadoop104'
+#ssh连接端口
+gitlab_rails['gitlab_shell_ssh_port'] = 15022
 ```
 
 
@@ -1900,7 +2321,15 @@ service network restart
 vim /etc/NetworkManager/system-connections/ens192.nmconnection
 ```
 
+## 6查看系统信息
 
+```
+hostnamectl
+```
+
+```
+uname -a
+```
 
 # 五、SQL
 
