@@ -1,0 +1,20 @@
+redis:
+#  addresses:
+#    - redis://192.168.101.135:6379  # 第一个Redis实例
+#    - redis://192.168.100.11:6379  # 第二个Redis实例
+
+  # 如果所有实例使用相同密码
+#  password: "123456"
+
+  # 或者为不同实例指定不同密码
+  addresses_with_passwords:
+   - redis://192.168.101.135:6379:123456
+   - redis://192.168.100.11:6379:123456
+
+#options:
+#  check-keys: "key_prefix_*"  # 可选：只监控特定前缀的key
+#  check-single-keys: "my_special_key"  # 可选：监控特定key
+#  check-streams: "stream_prefix_*"  # 可选：监控stream
+#  count-keys: "counted_keys_*"  # 可选：计数特定key
+#  script: "/path/to/script.lua"  # 可选：Lua脚本路径
+#  lua-script: "return redis.call('info')"  # 可选：直接提供Lua脚本

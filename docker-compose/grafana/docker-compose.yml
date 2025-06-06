@@ -9,7 +9,7 @@ services:
     ports:
       - "9090:9090"
     networks:
-      mynetwork:
+      - mynetwork
 
   grafana:
     image: grafana/grafana:9.5.21
@@ -21,7 +21,7 @@ services:
     volumes:
       - /root/mydata/grafana/data:/var/lib/grafana
     networks:
-      mynetwork:
+      - mynetwork
     depends_on:
       - prometheus
 
@@ -36,20 +36,22 @@ services:
       - mynetwork
     depends_on:
       - prometheus
+
   redis-exporter:
     image: oliver006/redis_exporter:v1.72.0
     container_name: redis-exporter
     restart: unless-stopped
-    environment:
-      - REDIS_ADDR=redis://192.168.101.135:6379  # 替换为您的Redis地址
-      - REDIS_PASSWORD=123456       # 如果Redis有密码
+    volumes:
+      - /root/mydata/redis_exporter/config.yml:/config.yml  # 配置文件挂载
+    command:
+      - '--config.file=/config.yml'  # 指定配置文件路径
     ports:
       - "9121:9121"
     networks:
       - mynetwork
     depends_on:
       - prometheus
+
 networks:
   mynetwork:
     external: true
-
