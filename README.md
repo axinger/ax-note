@@ -324,6 +324,7 @@ vim /etc/docker/daemon.json
     },
     "experimental": false,
     "registry-mirrors": [
+        "https://docker.1ms.run"
         "https://hub.rat.dev",
         "https://docker.nju.edu.cn",
         "http://hub-mirror.c.163.com",
@@ -662,6 +663,30 @@ networks:
 docker network connect mynetwork my_container
 ```
 
+## 8.yum管理docker
+
+###  1.只搜索可安装的版本（不包括已安装的）
+
+```
+yum --showduplicates list docker-ce available | sort -r
+```
+
+### 2.搜索所有可用版本（包括已安装和可用的）
+
+```
+yum list docker-ce --showduplicates | sort -r
+```
+
+### 3.yum更新docker
+
+```
+sudo yum update docker-ce docker-ce-cli containerd.io
+```
+
+```
+bash <(curl -sSL https://linuxmirrors.cn/docker.sh)
+```
+
 
 
 # 二、docker常用容器
@@ -693,7 +718,7 @@ mkdir -p /opt/mydata/portainer/data
 ```
 
 ```
-docker run -d  --name portainer -p 9000:9000 -v /var/run/docker.sock:/var/run/docker.sock -v /opt/mydata/portainer/data:/data --restart always --privileged=true portainer/portainer-ce:2.21.3
+docker run -d  --name portainer -p 18001:9000 -v /var/run/docker.sock:/var/run/docker.sock -v /opt/mydata/portainer/data:/data --restart always --privileged=true portainer/portainer-ce:2.21.3
 ```
 
 ```
@@ -749,7 +774,7 @@ mkdir -p /opt/mydata/mysql8/{data,logs,conf}
 ## 复制配置文件,一行命令
 
 ```
-docker run --rm mysql:8.0.33 cat /etc/my.cnf > /opt/mydata/mysql8/conf/my.cnf
+docker run --rm mysql:8.0.43 cat /etc/my.cnf > /opt/mydata/mysql8/conf/my.cnf
 ```
 
 ```
@@ -757,7 +782,7 @@ docker run \
 --name mysql8 -d \
 -p 3306:3306 \
 -e MYSQL_ROOT_PASSWORD=123456 \
-mysql:8.0.
+mysql:8.0.43
 ```
 
 ```
@@ -787,14 +812,15 @@ docker run \
 --restart=unless-stopped \
 --net=mynetwork \
 -e TZ=Asia/Shanghai \
+-v /opt/mydata/mysql8/conf/my.cnf:/etc/my.cnf \
 -v /opt/mydata/mysql8/data:/var/lib/mysql \
-mysql:8.0.33
+mysql:8.0.43
 ```
 
 ### 2.Windows安装
 
 ```
-docker run --name mysql8 -d -p 3306:3306 -e MYSQL_ROOT_PASSWORD=123456  --net=mynetwork -v D:\opt\mydata\mysql8\data:/var/lib/mysql mysql:8.0.33
+docker run --name mysql8 -d -p 3306:3306 -e MYSQL_ROOT_PASSWORD=123456  --net=mynetwork -v D:\opt\mydata\mysql8\data:/var/lib/mysql mysql:8.0.43
 ```
 
 
@@ -1952,6 +1978,24 @@ gitlab_rails['gitlab_ssh_host'] = 'hadoop104'
 gitlab_rails['gitlab_shell_ssh_port'] = 15022
 ```
 
+## lazydocker
+
+```
+docker run -it --name lazydocker \
+-p 18080:8080
+-v /var/run/docker.sock:/var/run/docker.sock \
+-v /opt/mydata/lazydocker:/.config/jesseduffield/lazydocker \
+lazyteam/lazydocker
+```
+
+control+x 关闭终端,就会关闭容器,
+
+启动容器 -i 显示终端
+
+```
+docker start -i lazydocker
+```
+
 
 
 # 三、 docker compose
@@ -2331,6 +2375,67 @@ hostnamectl
 uname -a
 ```
 
+## 7.更换镜像源
+
+```
+bash <(curl -sSL https://linuxmirrors.cn/main.sh)
+```
+
+## 8.安装Java
+
+### 1.解压
+
+```shell
+tar -zxvf jdk-8u212-linux-x64.tar.gz -C /opt/module/
+```
+
+### 2.环境变量
+
+```
+sudo vim /etc/profile.d/my_env.sh
+```
+
+```shell
+#JAVA_HOME
+export JAVA_HOME=/opt/module/jdk8
+export PATH=$PATH:$JAVA_HOME/bin
+
+#HADOOP_HOME
+export HADOOP_HOME=/opt/module/hadoop-3.4.1
+export PATH=$PATH:$HADOOP_HOME/bin
+export PATH=$PATH:$HADOOP_HOME/sbin
+
+#hadoop ,flink需要
+export HADOOP_CLASSPATH=`hadoop classpath`
+export HADOOP_CONF_DIR=$HADOOP_HOME/etc/hadoop
+
+# HDFS
+export HDFS_NAMENODE_USER=admin
+export HDFS_DATANODE_USER=admin
+export HDFS_SECONDARYNAMENODE_USER=admin
+export YARN_RESOURCEMANAGER_USER=admin
+export YARN_NODEMANAGER_USER=admin
+
+```
+
+### 3.更新配置文件
+
+```shell
+source /etc/profile 
+```
+
+### 4.指定jdk执行命令
+
+```shell
+/opt/module/jdk17/bin/java --version
+```
+
+```
+/opt/module/jdk17/bin/jps -ll
+```
+
+
+
 # 五、SQL
 
 ## 1. 查询中，含有数据库没有的字段
@@ -2586,5 +2691,78 @@ WHERE ranking <= 3;
  else
    echo "未找到对应服务"
  fi
+```
+
+# 七.scoop命令
+
+```
+#查询已知bucket
+scoop bucket known
+#添加bucket
+scoop bucket add extras
+```
+
+```
+# 查看当前buckt
+scoop bucket list
+
+# 删除已安装的bucket
+scoop bucket rm extras
+
+# 重新添加bucket
+scoop bucket add extras
+
+# 重新查看bucket镜像
+scoop bucket list
+
+## 正常切换后，bucket列表均应从gitee.com拉取，例如：
+Name     Source                                       Updated            Manifests
+----     ------                                       -------            ---------
+main     https://gitee.com/scoop-installer/Main       2025/2/24 8:37:11       1382
+extras   https://gitee.com/scoop-installer/Extras     2025/2/24 8:41:05       2130
+dorado   https://gitee.com/scoop-installer/dorado     2025/2/24 8:16:22        257
+echo     https://gitee.com/scoop-installer/echo-scoop 2025/2/23 22:14:08       102
+scoopcn  https://gitee.com/scoop-installer/scoopcn    2025/2/19 16:37:21        30
+scoopet  https://gitee.com/scoop-installer/scoopet    2025/2/24 2:01:44         81
+siku     https://gitee.com/scoop-installer/siku       2025/2/24 0:33:43         89
+Versions https://gitee.com/scoop-installer/Versions   2025/2/24 4:34:25        477
+```
+
+
+
+```
+# 基本语法
+scoop install <库名/软件名>
+
+# 例如安装 qq 微信(wechat) 
+scoop install qq
+# 指定bucket库的软件（如需要）
+scoop install scoopcn/wechat
+
+# 一条命令安装多个软件
+scoop install qq wechat aria2
+```
+
+```
+scoop uninstall qq wechat
+```
+
+```
+scoop update *
+```
+
+```
+# 软件暂停更新
+scoop hold <软件名>
+# 切换到指定版本
+scoop reset <软件名@版本号>
+# 重置所有软件链接及图标
+scoop reset *
+
+# 删除缓存软件包
+scoop cache rm *
+
+# 删除软件老版本
+scoop cleanup rm *
 ```
 
