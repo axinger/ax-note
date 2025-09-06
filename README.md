@@ -324,7 +324,7 @@ vim /etc/docker/daemon.json
     },
     "experimental": false,
     "registry-mirrors": [
-        "https://docker.1ms.run"
+        "https://docker.1ms.run",
         "https://hub.rat.dev",
         "https://docker.nju.edu.cn",
         "http://hub-mirror.c.163.com",
@@ -799,7 +799,8 @@ docker rm mysql8
 ```
 
 ```
---restart=always 
+--restart=always  一直启动
+--restart=unless-stopped 没有主动停止,才会启动
 ```
 
 
@@ -819,8 +820,16 @@ mysql:8.0.43
 
 ### 2.Windows安装
 
+使用`替代linux的 \,进行换行
+
 ```
-docker run --name mysql8 -d -p 3306:3306 -e MYSQL_ROOT_PASSWORD=123456  --net=mynetwork -v D:\opt\mydata\mysql8\data:/var/lib/mysql mysql:8.0.43
+docker run `
+--name mysql8 -d `
+-p 3306:3306 `
+-e MYSQL_ROOT_PASSWORD=123456 `
+-v /d/opt/mydata/mysql8/data:/var/lib/mysql `
+--restart=unless-stopped `
+mysql:8.0.43
 ```
 
 
@@ -1154,8 +1163,16 @@ redis:7.0.4 redis-server /etc/redis/redis.conf
 
 ### 3.Windows安装
 
+docker pull redis:8.2.1-alpine3.22
+
 ```
-docker run --name redis7 -d -p 6379:6379 --net=mynetwork --ip=172.19.0.6 -v D:\home\redis\data:/data redis:7.0.4 redis-server
+docker run --name redis7 -d `
+-p 6379:6379 `
+--privileged=true `
+--restart=unless-stopped `
+-v /d/opt/mydata/redis/redis.conf:/etc/redis/redis.conf `
+-v /d/opt/mydata/redis/data:/data `
+redis:8.2.1-alpine3.22 redis-server /etc/redis/redis.conf
 ```
 
 
@@ -1169,7 +1186,6 @@ mkdir -p /opt/mydata/nginx/{conf,conf.d,html,log}
 
 docker run --name demo-nginx -p 8080:80 -d nginx:1.23
 docker cp demo-nginx:/etc/nginx/nginx.conf /opt/mydata/nginx/conf/nginx.conf
-
 docker cp demo-nginx:/etc/nginx/conf.d/default.conf /opt/mydata/nginx/conf.d/default.conf
 ```
 
@@ -1178,7 +1194,7 @@ docker cp demo-nginx:/etc/nginx/conf.d/default.conf /opt/mydata/nginx/conf.d/def
 ```
 docker run --name demo-nginx -d \
 -p 3500:80 \
---restart always\
+--restart=unless-stopped \
 -v /opt/mydata/nginx/html:/usr/share/nginx/html \
 -v /opt/mydata/nginx/conf/nginx.conf:/etc/nginx/nginx.conf \
 -v /opt/mydata/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf \
