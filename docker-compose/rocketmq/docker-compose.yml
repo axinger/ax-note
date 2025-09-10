@@ -1,5 +1,5 @@
-version: '3.5'
-
+#version: '3.8'
+# Windows docker /opt/ 替换 D:加前缀
 services:
   rmqnamesrv:
     image: apache/rocketmq:4.9.4
@@ -7,8 +7,8 @@ services:
     ports:
       - 9876:9876
     volumes:
-      - ./nameserver/logs:/home/rocketmq/logs
-      - ./nameserver/store:/home/rocketmq/store
+      - /opt/mydata/rocketmq/nameserver/logs:/home/rocketmq/logs
+      - /opt/mydata/rocketmq/nameserver/store:/home/rocketmq/store
     environment:
       JAVA_OPT_EXT: "-Duser.home=/home/rocketmq -Xms512M -Xmx512M -Xmn128m"
     command: ["sh","mqnamesrv"]
@@ -23,9 +23,9 @@ services:
       - 10909:10909
       - 10911:10911
     volumes:
-      - ./broker/logs:/home/rocketmq/logs
-      - ./broker/store:/home/rocketmq/store
-      - ./broker/conf/broker.conf:/etc/rocketmq/broker.conf
+      - D:/opt/mydata/rocketmq/broker/logs:/home/rocketmq/logs
+      - D:/opt/mydata/rocketmq/broker/store:/home/rocketmq/store
+      - D:/opt/mydata/rocketmq/broker/conf/broker.conf:/etc/rocketmq/broker.conf
     environment:
       JAVA_OPT_EXT: "-Duser.home=/home/rocketmq -Xms512M -Xmx512M -Xmn128m"
     command: ["sh","mqbroker","-c","/etc/rocketmq/broker.conf","-n","rmqnamesrv:9876","autoCreateTopicEnable=true"]
