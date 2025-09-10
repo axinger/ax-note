@@ -1182,11 +1182,16 @@ redis:8.2.1-alpine3.22 redis-server /etc/redis/redis.conf
 ### 建立挂载目录
 
 ```
+新版本 /etc/nginx/conf.d 挂载整个目录,不要单独挂载文件
+```
+
+```
 mkdir -p /opt/mydata/nginx/{conf,conf.d,html,log}
 
 docker run --name demo-nginx -p 8080:80 -d nginx:1.23
 docker cp demo-nginx:/etc/nginx/nginx.conf /opt/mydata/nginx/conf/nginx.conf
-docker cp demo-nginx:/etc/nginx/conf.d/default.conf /opt/mydata/nginx/conf.d/default.conf
+
+docker run --rm nginx:1.23 cat /etc/nginx/nginx.conf > /opt/mydata/nginx/conf/nginx.conf /etc/nginx/conf.d/default.conf > /opt/mydata/nginx/conf.d/default.conf
 ```
 
 ### 命令
@@ -1197,14 +1202,47 @@ docker run --name demo-nginx -d \
 --restart=unless-stopped \
 -v /opt/mydata/nginx/html:/usr/share/nginx/html \
 -v /opt/mydata/nginx/conf/nginx.conf:/etc/nginx/nginx.conf \
--v /opt/mydata/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf \
+-v /opt/mydata/nginx/conf.d/:/etc/nginx/conf.d/ \
 -v /opt/mydata/nginx/log:/var/log/nginx \
-nginx:1.23
+nginx:1.28.0-alpine
 ```
+
+Window,需要多次cp文件
+
+```
+docker run --rm nginx:1.28.0-alpine-perl cat /etc/nginx/nginx.conf > D:/opt/mydata/nginx/conf/nginx.conf
+```
+
+
+
+```
+docker run --name my-nginx -d `
+-p 80:80 `
+--restart=unless-stopped `
+-v /d/opt/mydata/nginx/html:/usr/share/nginx/html `
+-v /d/opt/mydata/nginx/conf/nginx.conf:/etc/nginx/nginx.conf `
+-v /d/opt/mydata/nginx/conf.d/:/etc/nginx/conf.d/ `
+-v /d/opt/mydata/nginx/log:/var/log/nginx `
+nginx:1.28.0-alpine
+```
+
+
 
 ```
 配置请求转发,在conf.d/default.conf 中配置
 ```
+
+```
+docker pull nginx:1.28.0-alpine-perl
+perl: 这是该镜像的关键特性。它表示这个 Nginx 镜像在标准的 Nginx + Alpine 基础上，额外编译并集成了 Nginx 的 perl 模块（也称为 ngx_http_perl_module）。
+功能：perl 模块允许您在 Nginx 的配置文件（nginx.conf）中直接嵌入和执行 Perl 代码。这提供了极高的灵活性，可以用于：
+动态生成响应内容。
+复杂的请求处理逻辑（如自定义身份验证、重定向规则）。
+与外部系统进行交互。
+实现标准 Nginx 指令难以完成的高级功能
+```
+
+
 
 ## mongodb
 

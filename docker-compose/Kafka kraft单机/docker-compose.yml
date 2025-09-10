@@ -35,12 +35,12 @@
 version: "3.6"
 services:
   kafka:
-    container_name: kafka1
+    container_name: kafka3
     image: 'bitnami/kafka:3.8.0'
-    restart: always
+    restart: unless-stopped
     ports:
       - "9092:9092"
-    extra_hosts:        
+    extra_hosts:
       - "hadoop102:192.168.10.102"
       - "hadoop103:192.168.10.103"
       - "hadoop104:192.168.10.104"
